@@ -3,7 +3,7 @@
 ### Install
 
 ```html
-npm i popup-js
+npm i popup-simple
 ```
 
 ```html
