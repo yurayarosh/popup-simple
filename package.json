@@ -1,5 +1,5 @@
 {
-  "name": "simple-popup",
+  "name": "popup-simple",
   "description": "Small JS plugin to handle popup",
   "version": "1.0.0",
   "scripts": {
@@ -9,7 +9,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yurayarosh/simple-popup"
+    "url": "https://github.com/yurayarosh/popup-simple"
   },
   "keywords": [
     "popup",
@@ -20,7 +20,7 @@
   "authors": "yurayarosh",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/yurayarosh/simple-popup/issues"
+    "url": "https://github.com/yurayarosh/popup-simple/issues"
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
