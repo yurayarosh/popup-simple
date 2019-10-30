@@ -20,7 +20,7 @@ npm i popup-simple
 ```
 
 ```js
-import Popup from './main'
+import Popup from 'popup-simple'
 
 const popup = new Popup()
 popup.init()
