@@ -16,14 +16,21 @@ export default class Popup {
     this.popups = [...document.querySelectorAll(`.${TARGET}`)];
     this.options = { ...defaultOptions, ...options };
 
-    this.open = this.openPopup.bind(this);
-    this.close = this.closePopup.bind(this);
+    this.open = this.handleOpen.bind(this);
+    this.close = this.handleClose.bind(this);
 
     this.btn = null;
     this.popup = null;
-    this.openPopups = null;
-    this.closeBtns = null;
     this.closeTrigger = null;
+  }
+
+  get openPopups() {
+    return this.popups.filter((popup) => popup.classList.contains(IS_ACTIVE));
+  }
+
+  get closeBtns() {
+    if(!this.popup) return null;
+    return [...this.popup.querySelectorAll(`.${CLOSE}`)];
   }
 
   init() {
@@ -38,15 +45,9 @@ export default class Popup {
   handleEscClick(e) {
     if (e && e.type === 'keydown') {
       if (e.keyCode && e.keyCode === 27) {
-        this.openPopups = this.popups.filter((popup) => popup.classList.contains(IS_ACTIVE));
-
         if (!this.openPopups.length) return;
         this.closeTrigger = 'Escape button';
-        this.openPopups.forEach((popup) => {
-          popup.classList.remove(IS_ACTIVE);
-        });
-        document.body.classList.remove(NO_SCROLL);
-
+        this.closeAll();
         if (this.onClose) {
           this.onClose();
         }
@@ -67,50 +68,66 @@ export default class Popup {
       if (!this.closeTrigger) return;
 
       e.preventDefault();
-      this.popup = this.closeTrigger.closest(`.${TARGET}`);
-      this.name = this.popup.dataset.popup;
-      this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`);
-
-      this.popup.classList.remove(IS_ACTIVE);
-      document.body.classList.remove(NO_SCROLL);
-
-      if (this.onClose) {
-        this.onClose();
-      }
+      this.closePopup();
     }
   }
 
-  openPopup(e) {
+  handleOpen(e) {
     this.btn = e.target.closest(`.${OPEN}`);
     if (!this.btn) return;
     if (e.target.closest(`.${BTN_IN_POPUP_OPEN}`)) return;
 
     e.preventDefault();
+    this.openPopup();
+  }
+
+  handleClose(e) {
+    if (this.options.escapeHandler) this.handleEscClick(e);
+    this.handleBtnClick(e);
+  }
+
+  closePopup() {
+    this.popup = this.closeTrigger.closest(`.${TARGET}`);
+    this.name = this.popup.dataset.popup;
+    this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`);
+
+    this.popup.classList.remove(IS_ACTIVE);
+    if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
+
+    if (this.onClose) {
+      this.onClose();
+    }
+  }
+
+  openPopup() {
     this.name = this.btn.dataset.popupTarget;
     this.popup = document.querySelector(`.${TARGET}[data-popup="${this.name}"]`);
 
     if (!this.popup) return;
-    this.closeBtns = [...this.popup.querySelectorAll(`.${CLOSE}`)];
 
-    const openedPopups = [...document.querySelectorAll(`.${TARGET}:not([data-popup="${this.name}"])`)];
-
-    openedPopups.forEach((popup) => {
-      popup.classList.remove(IS_ACTIVE);
-    });
+    this.closeAll();
 
     this.popup.classList.add(IS_ACTIVE);
-    if (this.options.toggleBodyClass) {
-      document.body.classList.add(NO_SCROLL);
-    }
+    if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL);
 
     if (this.onOpen) {
       this.onOpen();
     }
   }
 
-  closePopup(e) {
-    if (this.options.escapeHandler) this.handleEscClick(e);
-    this.handleBtnClick(e);
+  openTarget(target) {
+    this.name = target.dataset.popup;
+    this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`);
+
+    this.openPopup();
+  }
+
+  closeAll() {
+    if (!this.openPopups.length) return;
+    this.openPopups.forEach((popup) => {
+      popup.classList.remove(IS_ACTIVE);
+    });
+    if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
   }
 
   _addListeners() {
@@ -129,6 +146,6 @@ export default class Popup {
     this.popups.forEach((popup) => {
       popup.classList.remove(IS_ACTIVE);
     });
-    document.body.classList.remove(NO_SCROLL);
+    if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
   }
 }

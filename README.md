@@ -37,7 +37,7 @@ Standart options
 }
 ```
 
-### Events
+### Methods
 
 ```js
 popup.onOpen = () => {
@@ -46,4 +46,6 @@ popup.onOpen = () => {
 popup.onCLose = () => {
   // some callback
 };
+popup.openTarget(target) // open specific popup
+popup.closeAll() // close all popups
 ```

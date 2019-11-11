@@ -71,6 +71,53 @@ function _objectSpread2(target) {
   return target;
 }
 
+function _inherits(subClass, superClass) {
+  if (typeof superClass !== "function" && superClass !== null) {
+    throw new TypeError("Super expression must either be null or a function");
+  }
+
+  subClass.prototype = Object.create(superClass && superClass.prototype, {
+    constructor: {
+      value: subClass,
+      writable: true,
+      configurable: true
+    }
+  });
+  if (superClass) _setPrototypeOf(subClass, superClass);
+}
+
+function _getPrototypeOf(o) {
+  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
+    return o.__proto__ || Object.getPrototypeOf(o);
+  };
+  return _getPrototypeOf(o);
+}
+
+function _setPrototypeOf(o, p) {
+  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
+    o.__proto__ = p;
+    return o;
+  };
+
+  return _setPrototypeOf(o, p);
+}
+
+function _assertThisInitialized(self) {
+  if (self === void 0) {
+    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+  }
+
+  return self;
+}
+
+function _possibleConstructorReturn(self, call) {
+  if (call && (typeof call === "object" || typeof call === "function")) {
+    return call;
+  }
+
+  return _assertThisInitialized(self);
+}
+
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
 }
@@ -111,12 +158,10 @@ function () {
 
     this.popups = _toConsumableArray(document.querySelectorAll(".".concat(TARGET)));
     this.options = _objectSpread2({}, defaultOptions, {}, options);
-    this.open = this.openPopup.bind(this);
-    this.close = this.closePopup.bind(this);
+    this.open = this.handleOpen.bind(this);
+    this.close = this.handleClose.bind(this);
     this.btn = null;
     this.popup = null;
-    this.openPopups = null;
-    this.closeBtns = null;
     this.closeTrigger = null;
   }
 
@@ -137,15 +182,9 @@ function () {
     value: function handleEscClick(e) {
       if (e && e.type === 'keydown') {
         if (e.keyCode && e.keyCode === 27) {
-          this.openPopups = this.popups.filter(function (popup) {
-            return popup.classList.contains(IS_ACTIVE);
-          });
           if (!this.openPopups.length) return;
           this.closeTrigger = 'Escape button';
-          this.openPopups.forEach(function (popup) {
-            popup.classList.remove(IS_ACTIVE);
-          });
-          document.body.classList.remove(NO_SCROLL);
+          this.closeAll();
 
           if (this.onClose) {
             this.onClose();
@@ -168,49 +207,66 @@ function () {
 
         if (!this.closeTrigger) return;
         e.preventDefault();
-        this.popup = this.closeTrigger.closest(".".concat(TARGET));
-        this.name = this.popup.dataset.popup;
-        this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
-        this.popup.classList.remove(IS_ACTIVE);
-        document.body.classList.remove(NO_SCROLL);
-
-        if (this.onClose) {
-          this.onClose();
-        }
+        this.closePopup();
       }
     }
   }, {
-    key: "openPopup",
-    value: function openPopup(e) {
+    key: "handleOpen",
+    value: function handleOpen(e) {
       this.btn = e.target.closest(".".concat(OPEN));
       if (!this.btn) return;
       if (e.target.closest(".".concat(BTN_IN_POPUP_OPEN))) return;
       e.preventDefault();
+      this.openPopup();
+    }
+  }, {
+    key: "handleClose",
+    value: function handleClose(e) {
+      if (this.options.escapeHandler) this.handleEscClick(e);
+      this.handleBtnClick(e);
+    }
+  }, {
+    key: "closePopup",
+    value: function closePopup() {
+      this.popup = this.closeTrigger.closest(".".concat(TARGET));
+      this.name = this.popup.dataset.popup;
+      this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
+      this.popup.classList.remove(IS_ACTIVE);
+      if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
+
+      if (this.onClose) {
+        this.onClose();
+      }
+    }
+  }, {
+    key: "openPopup",
+    value: function openPopup() {
       this.name = this.btn.dataset.popupTarget;
       this.popup = document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
-      this.closeBtns = _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
-
-      var openedPopups = _toConsumableArray(document.querySelectorAll(".".concat(TARGET, ":not([data-popup=\"").concat(this.name, "\"])")));
-
-      openedPopups.forEach(function (popup) {
-        popup.classList.remove(IS_ACTIVE);
-      });
+      this.closeAll();
       this.popup.classList.add(IS_ACTIVE);
-
-      if (this.options.toggleBodyClass) {
-        document.body.classList.add(NO_SCROLL);
-      }
+      if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL);
 
       if (this.onOpen) {
         this.onOpen();
       }
     }
   }, {
-    key: "closePopup",
-    value: function closePopup(e) {
-      if (this.options.escapeHandler) this.handleEscClick(e);
-      this.handleBtnClick(e);
+    key: "openTarget",
+    value: function openTarget(target) {
+      this.name = target.dataset.popup;
+      this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
+      this.openPopup();
+    }
+  }, {
+    key: "closeAll",
+    value: function closeAll() {
+      if (!this.openPopups.length) return;
+      this.openPopups.forEach(function (popup) {
+        popup.classList.remove(IS_ACTIVE);
+      });
+      if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
   }, {
     key: "_addListeners",
@@ -232,13 +288,56 @@ function () {
       this.popups.forEach(function (popup) {
         popup.classList.remove(IS_ACTIVE);
       });
-      document.body.classList.remove(NO_SCROLL);
+      if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
+    }
+  }, {
+    key: "openPopups",
+    get: function get() {
+      return this.popups.filter(function (popup) {
+        return popup.classList.contains(IS_ACTIVE);
+      });
+    }
+  }, {
+    key: "closeBtns",
+    get: function get() {
+      if (!this.popup) return null;
+      return _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
     }
   }]);
 
   return Popup;
 }();
 
-var popup = new Popup();
+var MyPopup =
+/*#__PURE__*/
+function (_Popup) {
+  _inherits(MyPopup, _Popup);
+
+  function MyPopup(props) {
+    _classCallCheck(this, MyPopup);
+
+    return _possibleConstructorReturn(this, _getPrototypeOf(MyPopup).call(this, props));
+  }
+
+  _createClass(MyPopup, [{
+    key: "onOpen",
+    value: function onOpen() {
+      console.log(this, 'open');
+    }
+  }, {
+    key: "onClose",
+    value: function onClose() {
+      console.log(this, 'close');
+    }
+  }]);
+
+  return MyPopup;
+}(Popup);
+
+var popup = new MyPopup();
 popup.init();
 console.log(popup);
+var target = document.querySelector('.js-popup'); // setTimeout(() => {
+//   popup.openTarget(target);
+//   console.log('open target');
+// }, 1000)
