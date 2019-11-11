@@ -48,4 +48,5 @@ popup.onCLose = () => {
 };
 popup.openTarget(target) // open specific popup
 popup.closeAll() // close all popups
+popup.destroy() // close all popups and remomove listeners
 ```

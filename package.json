@@ -1,7 +1,7 @@
 {
   "name": "popup-simple",
   "description": "Small JS plugin to handle popup",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "start": "rollup -c -w",
     "build": "rollup -c"
