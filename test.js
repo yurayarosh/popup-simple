@@ -181,7 +181,7 @@ function () {
     key: "handleEscClick",
     value: function handleEscClick(e) {
       if (e && e.type === 'keydown') {
-        if (e.keyCode && e.keyCode === 27) {
+        if (e && e.code === 'Escape') {
           if (!this.openPopups.length) return;
           this.closeTrigger = 'Escape button';
           this.closeAll();
