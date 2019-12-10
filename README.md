@@ -34,6 +34,7 @@ Standart options
   toggleBodyClass: true, // toggle body overflow hidden class
   escapeHandler: true, // handle Esc button click
   closeOnOverlayClick: true, // close on overlay click
+  toggleBtnClass: false, // { toggle: true, name: 'btn' } allow trigger button class name toggling
 }
 ```
 

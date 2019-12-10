@@ -138,16 +138,54 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance");
 }
 
-var OPEN = 'js-popup-open';
-var TARGET = 'js-popup';
-var CLOSE = 'js-popup-close';
-var IS_ACTIVE = 'is-active';
-var NO_SCROLL = 'no-scroll';
-var BTN_IN_POPUP_OPEN = 'js-btn-in-popup-open';
+var BEMblock = function BEMblock(block, name) {
+  var addMod = function addMod(mod) {
+    block.classList.add("".concat(name, "--").concat(mod));
+  };
+
+  var removeMod = function removeMod(mod) {
+    block.classList.remove("".concat(name, "--").concat(mod));
+  };
+
+  var toggleMod = function toggleMod(mod) {
+    block.classList.toggle("".concat(name, "--").concat(mod));
+  };
+
+  var containsMod = function containsMod(mod) {
+    return block.classList.contains("".concat(name, "--").concat(mod));
+  };
+
+  return {
+    name: name,
+    block: block,
+    addMod: addMod,
+    toggleMod: toggleMod,
+    removeMod: removeMod,
+    containsMod: containsMod
+  };
+};
+var constants = {
+  POPUP: 'popup',
+  OPEN: 'js-popup-open',
+  TARGET: 'js-popup',
+  CLOSE: 'js-popup-close',
+  IS_ACTIVE: 'active',
+  NO_SCROLL: 'no-scroll',
+  BTN_IN_POPUP_OPEN: 'js-btn-in-popup-open'
+};
+
+var POPUP = constants.POPUP,
+    OPEN = constants.OPEN,
+    TARGET = constants.TARGET,
+    CLOSE = constants.CLOSE,
+    IS_ACTIVE = constants.IS_ACTIVE,
+    NO_SCROLL = constants.NO_SCROLL,
+    BTN_IN_POPUP_OPEN = constants.BTN_IN_POPUP_OPEN;
 var defaultOptions = {
   toggleBodyClass: true,
   escapeHandler: true,
-  closeOnOverlayClick: true
+  closeOnOverlayClick: true,
+  toggleBtnClass: false
 };
 
 var Popup =
@@ -180,16 +218,11 @@ function () {
   }, {
     key: "handleEscClick",
     value: function handleEscClick(e) {
-      if (e && e.type === 'keydown') {
-        if (e && e.code === 'Escape') {
-          if (!this.openPopups.length) return;
-          this.closeTrigger = 'Escape button';
-          this.closeAll();
-
-          if (this.onClose) {
-            this.onClose();
-          }
-        }
+      if (e && e.type === 'keydown' && e.code === 'Escape') {
+        if (!this.openPopups.length) return;
+        this.closeTrigger = 'Escape button';
+        this.closeAll();
+        if (this.onClose) this.onClose();
       }
     }
   }, {
@@ -231,12 +264,10 @@ function () {
       this.popup = this.closeTrigger.closest(".".concat(TARGET));
       this.name = this.popup.dataset.popup;
       this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
-      this.popup.classList.remove(IS_ACTIVE);
+      BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
+      if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
-
-      if (this.onClose) {
-        this.onClose();
-      }
+      if (this.onClose) this.onClose();
     }
   }, {
     key: "openPopup",
@@ -245,12 +276,10 @@ function () {
       this.popup = document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
       this.closeAll();
-      this.popup.classList.add(IS_ACTIVE);
+      BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
+      if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
       if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL);
-
-      if (this.onOpen) {
-        this.onOpen();
-      }
+      if (this.onOpen) this.onOpen();
     }
   }, {
     key: "openTarget",
@@ -262,10 +291,19 @@ function () {
   }, {
     key: "closeAll",
     value: function closeAll() {
+      var _this = this;
+
       if (!this.openPopups.length) return;
       this.openPopups.forEach(function (popup) {
-        popup.classList.remove(IS_ACTIVE);
+        BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
       });
+
+      if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
+        this.btns.forEach(function (btn) {
+          BEMblock(btn, _this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
+        });
+      }
+
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
   }, {
@@ -286,7 +324,7 @@ function () {
     key: "_removeOpenClassNames",
     value: function _removeOpenClassNames() {
       this.popups.forEach(function (popup) {
-        popup.classList.remove(IS_ACTIVE);
+        BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
       });
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
@@ -294,7 +332,7 @@ function () {
     key: "openPopups",
     get: function get() {
       return this.popups.filter(function (popup) {
-        return popup.classList.contains(IS_ACTIVE);
+        return BEMblock(popup, POPUP).containsMod(IS_ACTIVE);
       });
     }
   }, {
@@ -302,6 +340,11 @@ function () {
     get: function get() {
       if (!this.popup) return null;
       return _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
+    }
+  }, {
+    key: "btns",
+    get: function get() {
+      return _toConsumableArray(document.querySelectorAll(".".concat(OPEN)));
     }
   }]);
 

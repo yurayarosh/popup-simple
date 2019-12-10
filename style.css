@@ -20,7 +20,7 @@
   opacity: 0;
 }
 
-.popup.is-active {
+.popup--active {
   visibility: visible;
   opacity: 1;
 }
