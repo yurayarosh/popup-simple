@@ -71,53 +71,6 @@ function _objectSpread2(target) {
   return target;
 }
 
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) _setPrototypeOf(subClass, superClass);
-}
-
-function _getPrototypeOf(o) {
-  _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf(o);
-}
-
-function _setPrototypeOf(o, p) {
-  _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-
-  return _setPrototypeOf(o, p);
-}
-
-function _assertThisInitialized(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-  }
-
-  return self;
-}
-
-function _possibleConstructorReturn(self, call) {
-  if (call && (typeof call === "object" || typeof call === "function")) {
-    return call;
-  }
-
-  return _assertThisInitialized(self);
-}
-
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
 }
@@ -194,35 +147,23 @@ function () {
   function Popup(options) {
     _classCallCheck(this, Popup);
 
-    this.popups = _toConsumableArray(document.querySelectorAll(".".concat(TARGET)));
     this.options = _objectSpread2({}, defaultOptions, {}, options);
     this.open = this.handleOpen.bind(this);
     this.close = this.handleClose.bind(this);
+    this.observer = new MutationObserver(this.handleMutation.bind(this));
     this.btn = null;
     this.popup = null;
     this.closeTrigger = null;
+    this.observedPopups = [];
   }
 
   _createClass(Popup, [{
-    key: "init",
-    value: function init() {
-      this._addListeners();
-    }
-  }, {
-    key: "destroy",
-    value: function destroy() {
-      this._removeListeners();
-
-      this._removeOpenClassNames();
-    }
-  }, {
     key: "handleEscClick",
     value: function handleEscClick(e) {
       if (e && e.type === 'keydown' && e.code === 'Escape') {
         if (!this.openPopups.length) return;
-        this.closeTrigger = 'Escape button';
-        this.closeAll();
-        if (this.onClose) this.onClose();
+        this.closeTrigger = this.openPopups[this.openPopups.length - 1];
+        this.closePopup();
       }
     }
   }, {
@@ -267,19 +208,29 @@ function () {
       BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
       if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
-      if (this.onClose) this.onClose();
     }
   }, {
     key: "openPopup",
     value: function openPopup() {
+      var _this = this;
+
       this.name = this.btn.dataset.popupTarget;
       this.popup = document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
-      this.closeAll();
       BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
       if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
       if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL);
       if (this.onOpen) this.onOpen();
+      var isObserving = !!this.observedPopups.filter(function (p) {
+        return p === _this.popup;
+      })[0];
+      if (isObserving) return;
+      this.observer.observe(this.popup, {
+        attributes: true,
+        attributeFilter: ['class'],
+        attributeOldValue: true
+      });
+      this.observedPopups.push(this.popup);
     }
   }, {
     key: "openTarget",
@@ -291,7 +242,7 @@ function () {
   }, {
     key: "closeAll",
     value: function closeAll() {
-      var _this = this;
+      var _this2 = this;
 
       if (!this.openPopups.length) return;
       this.openPopups.forEach(function (popup) {
@@ -300,11 +251,22 @@ function () {
 
       if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
         this.btns.forEach(function (btn) {
-          BEMblock(btn, _this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
+          BEMblock(btn, _this2.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
         });
       }
 
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
+    }
+  }, {
+    key: "handleMutation",
+    value: function handleMutation(mutationsList) {
+      var _this3 = this;
+
+      mutationsList.forEach(function (mutation) {
+        if (mutation.oldValue.indexOf("".concat(POPUP, "--").concat(IS_ACTIVE)) > 0) {
+          if (_this3.onClose) _this3.onClose();
+        }
+      });
     }
   }, {
     key: "_addListeners",
@@ -329,6 +291,30 @@ function () {
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
   }, {
+    key: "init",
+    value: function init() {
+      this._addListeners();
+    }
+  }, {
+    key: "destroy",
+    value: function destroy() {
+      this._removeListeners();
+
+      this._removeOpenClassNames();
+
+      this.observer.disconnect();
+    }
+  }, {
+    key: "popups",
+    get: function get() {
+      return _toConsumableArray(document.querySelectorAll(".".concat(TARGET)));
+    }
+  }, {
+    key: "btns",
+    get: function get() {
+      return _toConsumableArray(document.querySelectorAll(".".concat(OPEN)));
+    }
+  }, {
     key: "openPopups",
     get: function get() {
       return this.popups.filter(function (popup) {
@@ -341,46 +327,37 @@ function () {
       if (!this.popup) return null;
       return _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
     }
-  }, {
-    key: "btns",
-    get: function get() {
-      return _toConsumableArray(document.querySelectorAll(".".concat(OPEN)));
-    }
   }]);
 
   return Popup;
 }();
 
-var MyPopup =
-/*#__PURE__*/
-function (_Popup) {
-  _inherits(MyPopup, _Popup);
+var popup = new Popup();
 
-  function MyPopup(props) {
-    _classCallCheck(this, MyPopup);
+popup.onOpen = function () {
+  console.log(popup);
+};
 
-    return _possibleConstructorReturn(this, _getPrototypeOf(MyPopup).call(this, props));
-  }
+popup.onClose = function () {
+  console.log('close', popup);
+};
 
-  _createClass(MyPopup, [{
-    key: "onOpen",
-    value: function onOpen() {
-      console.log(this, 'open');
-    }
-  }, {
-    key: "onClose",
-    value: function onClose() {
-      console.log(this, 'close');
-    }
-  }]);
-
-  return MyPopup;
-}(Popup);
-
-var popup = new MyPopup();
-popup.init();
-console.log(popup);
-var target = document.querySelector('.js-popup'); // setTimeout(() => {
+popup.init(); // class MyPopup extends Popup {
+//   constructor(props) {
+//     super(props)
+//   }
+//   onOpen() {
+//     console.log(this, 'open');
+//   }
+//   onClose() {
+//     console.log(this, 'close');
+//   }  
+// }
+// const popup = new MyPopup()
+// popup.init()
+// console.log(popup);
+// const target = document.querySelector('.js-popup')
+// setTimeout(() => {
 //   popup.openTarget(target);
 //   console.log('open target');
 // }, 1000)

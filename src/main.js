@@ -19,15 +19,25 @@ const defaultOptions = {
 
 export default class Popup {
   constructor(options) {
-    this.popups = [...document.querySelectorAll(`.${TARGET}`)]
     this.options = { ...defaultOptions, ...options }
 
     this.open = this.handleOpen.bind(this)
     this.close = this.handleClose.bind(this)
+    this.observer = new MutationObserver(this.handleMutation.bind(this))
 
     this.btn = null
     this.popup = null
     this.closeTrigger = null
+
+    this.observedPopups = []
+  }
+
+  get popups() {
+    return [...document.querySelectorAll(`.${TARGET}`)]
+  }
+
+  get btns() {
+    return [...document.querySelectorAll(`.${OPEN}`)]
   }
 
   get openPopups() {
@@ -39,25 +49,11 @@ export default class Popup {
     return [...this.popup.querySelectorAll(`.${CLOSE}`)]
   }
 
-  get btns() {
-    return [...document.querySelectorAll(`.${OPEN}`)]
-  }
-
-  init() {
-    this._addListeners()
-  }
-
-  destroy() {
-    this._removeListeners()
-    this._removeOpenClassNames()
-  }
-
   handleEscClick(e) {
     if (e && e.type === 'keydown' && e.code === 'Escape') {
       if (!this.openPopups.length) return
-      this.closeTrigger = 'Escape button'
-      this.closeAll()
-      if (this.onClose) this.onClose()
+      this.closeTrigger = this.openPopups[this.openPopups.length - 1]
+      this.closePopup()
     }
   }
 
@@ -98,10 +94,9 @@ export default class Popup {
     this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`)
 
     BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE)
-    if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE)
+    if (this.options.toggleBtnClass.toggle)
+      BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE)
     if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL)
-
-    if (this.onClose) this.onClose()
   }
 
   openPopup() {
@@ -110,13 +105,22 @@ export default class Popup {
 
     if (!this.popup) return
 
-    this.closeAll()
-
     BEMblock(this.popup, POPUP).addMod(IS_ACTIVE)
-    if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE)
+    if (this.options.toggleBtnClass.toggle)
+      BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE)
     if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL)
 
     if (this.onOpen) this.onOpen()
+
+    const isObserving = !!this.observedPopups.filter(p => p === this.popup)[0]
+
+    if (isObserving) return
+    this.observer.observe(this.popup, {
+      attributes: true,
+      attributeFilter: ['class'],
+      attributeOldValue: true,
+    })
+    this.observedPopups.push(this.popup)
   }
 
   openTarget(target) {
@@ -139,6 +143,14 @@ export default class Popup {
     if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL)
   }
 
+  handleMutation(mutationsList) {
+    mutationsList.forEach(mutation => {
+      if (mutation.oldValue.indexOf(`${POPUP}--${IS_ACTIVE}`) > 0) {
+        if (this.onClose) this.onClose()
+      }
+    })
+  }
+
   _addListeners() {
     document.addEventListener('click', this.open)
     document.addEventListener('click', this.close)
@@ -156,5 +168,15 @@ export default class Popup {
       BEMblock(popup, POPUP).removeMod(IS_ACTIVE)
     })
     if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL)
+  }
+
+  init() {
+    this._addListeners()
+  }
+
+  destroy() {
+    this._removeListeners()
+    this._removeOpenClassNames()
+    this.observer.disconnect()
   }
 }

@@ -1,27 +1,38 @@
 import Popup from './main'
 
-class MyPopup extends Popup {
-  constructor(props) {
-    super(props)
-  }
+const popup = new Popup()
 
-  onOpen() {
-    console.log(this, 'open');
-    
-  }
-
-  onClose() {
-    console.log(this, 'close');
-    
-  }  
+popup.onOpen = () => {
+  console.log(popup)
+}
+popup.onClose = () => {
+  console.log('close', popup)
 }
 
-const popup = new MyPopup()
 popup.init()
 
-console.log(popup);
+// class MyPopup extends Popup {
+//   constructor(props) {
+//     super(props)
+//   }
 
-const target = document.querySelector('.js-popup')
+//   onOpen() {
+//     console.log(this, 'open');
+    
+//   }
+
+//   onClose() {
+//     console.log(this, 'close');
+    
+//   }  
+// }
+
+// const popup = new MyPopup()
+// popup.init()
+
+// console.log(popup);
+
+// const target = document.querySelector('.js-popup')
 
 // setTimeout(() => {
 //   popup.openTarget(target);
