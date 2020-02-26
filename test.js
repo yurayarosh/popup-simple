@@ -206,8 +206,14 @@ function () {
       this.name = this.popup.dataset.popup;
       this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
       BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
-      if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
-      if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
+
+      if (this.options.toggleBtnClass.toggle) {
+        BEMblock(this.btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
+      }
+
+      if (this.options.toggleBodyClass && !this.openPopups.length) {
+        document.body.classList.remove(NO_SCROLL);
+      }
     }
   }, {
     key: "openPopup",
@@ -218,7 +224,11 @@ function () {
       this.popup = document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
       BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
-      if (this.options.toggleBtnClass.toggle) BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
+
+      if (this.options.toggleBtnClass.toggle) {
+        BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
+      }
+
       if (this.options.toggleBodyClass) document.body.classList.add(NO_SCROLL);
       if (this.onOpen) this.onOpen();
       var isObserving = !!this.observedPopups.filter(function (p) {
