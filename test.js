@@ -124,7 +124,8 @@ var constants = {
   CLOSE: 'js-popup-close',
   IS_ACTIVE: 'active',
   NO_SCROLL: 'no-scroll',
-  BTN_IN_POPUP_OPEN: 'js-btn-in-popup-open'
+  BTN_IN_POPUP_OPEN: 'js-btn-in-popup-open',
+  HASH: '#'
 };
 
 var POPUP = constants.POPUP,
@@ -133,7 +134,8 @@ var POPUP = constants.POPUP,
     CLOSE = constants.CLOSE,
     IS_ACTIVE = constants.IS_ACTIVE,
     NO_SCROLL = constants.NO_SCROLL,
-    BTN_IN_POPUP_OPEN = constants.BTN_IN_POPUP_OPEN;
+    BTN_IN_POPUP_OPEN = constants.BTN_IN_POPUP_OPEN,
+    HASH = constants.HASH;
 var defaultOptions = {
   toggleBodyClass: true,
   escapeHandler: true,
@@ -151,6 +153,7 @@ function () {
     this.open = this.handleOpen.bind(this);
     this.close = this.handleClose.bind(this);
     this.observer = new MutationObserver(this.handleMutation.bind(this));
+    this.onPopstate = this.handlePopState.bind(this);
     this.btn = null;
     this.popup = null;
     this.closeTrigger = null;
@@ -158,31 +161,62 @@ function () {
   }
 
   _createClass(Popup, [{
-    key: "handleEscClick",
-    value: function handleEscClick(e) {
-      if (e && e.type === 'keydown' && e.code === 'Escape') {
-        if (!this.openPopups.length) return;
+    key: "resetElements",
+    value: function resetElements() {
+      this.btn = null;
+      this.popup = null;
+      this.closeTrigger = null;
+      this.observedPopups = [];
+      this.options.shouldChangeUrl = false;
+    }
+  }, {
+    key: "pushUrl",
+    value: function pushUrl() {
+      var url = "".concat(window.location.href).concat(this.name);
+      window.history.pushState({}, '', url);
+    }
+  }, {
+    key: "removeUrl",
+    value: function removeUrl() {
+      var url = window.location.href.slice(0, this.hashStart);
+      window.history.pushState({}, '', url);
+      this.href = '';
+    }
+  }, {
+    key: "handlePopState",
+    value: function handlePopState() {
+      if (this.hashStart === -1) {
         this.closeTrigger = this.openPopups[this.openPopups.length - 1];
         this.closePopup();
       }
+
+      if (this.hashStart > 0) {
+        if (!this.href && !this.btn) this.href = window.location.href.slice(this.hashStart);
+        this.openPopup();
+      }
+    }
+  }, {
+    key: "handleEscClick",
+    value: function handleEscClick() {
+      if (!this.openPopups.length) return;
+      this.closeTrigger = this.openPopups[this.openPopups.length - 1];
+      this.closePopup();
     }
   }, {
     key: "handleBtnClick",
     value: function handleBtnClick(e) {
-      if (e && e.type === 'click') {
-        var closeBtn = e.target.closest(".".concat(CLOSE));
+      var closeBtn = e.target.closest(".".concat(CLOSE));
 
-        if (this.options.closeOnOverlayClick) {
-          var popup = e.target.classList && e.target.classList.contains(TARGET) ? e.target : null;
-          this.closeTrigger = closeBtn || popup;
-        } else {
-          this.closeTrigger = closeBtn;
-        }
-
-        if (!this.closeTrigger) return;
-        e.preventDefault();
-        this.closePopup();
+      if (this.options.closeOnOverlayClick) {
+        var popup = e.target.classList && e.target.classList.contains(TARGET) ? e.target : null;
+        this.closeTrigger = closeBtn || popup;
+      } else {
+        this.closeTrigger = closeBtn;
       }
+
+      if (!this.closeTrigger) return;
+      e.preventDefault();
+      this.closePopup();
     }
   }, {
     key: "handleOpen",
@@ -190,18 +224,19 @@ function () {
       this.btn = e.target.closest(".".concat(OPEN));
       if (!this.btn) return;
       if (e.target.closest(".".concat(BTN_IN_POPUP_OPEN))) return;
-      e.preventDefault();
       this.openPopup();
+      e.preventDefault();
     }
   }, {
     key: "handleClose",
     value: function handleClose(e) {
-      if (this.options.escapeHandler) this.handleEscClick(e);
-      this.handleBtnClick(e);
+      if (this.options.escapeHandler && e.code === 'Escape') this.handleEscClick(e);
+      if (e.type === 'click') this.handleBtnClick(e);
     }
   }, {
     key: "closePopup",
     value: function closePopup() {
+      if (this.href && this.hashStart > 0) this.removeUrl();
       this.popup = this.closeTrigger.closest(".".concat(TARGET));
       this.name = this.popup.dataset.popup;
       this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
@@ -214,15 +249,27 @@ function () {
       if (this.options.toggleBodyClass && !this.openPopups.length) {
         document.body.classList.remove(NO_SCROLL);
       }
+
+      this.resetElements();
     }
   }, {
     key: "openPopup",
     value: function openPopup() {
       var _this = this;
 
-      this.name = this.btn.dataset.popupTarget;
-      this.popup = document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
+      this.name = this.btn ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href') : this.href;
+
+      if (this.name.indexOf(HASH) === 0) {
+        this.options.shouldChangeUrl = true;
+        this.href = this.name;
+      } else {
+        this.options.shouldChangeUrl = false;
+        if (this.href) this.removeUrl();
+      }
+
+      this.popup = this.options.shouldChangeUrl ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
+      if (this.btn && this.options.shouldChangeUrl) this.pushUrl();
       BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
 
       if (this.options.toggleBtnClass.toggle) {
@@ -245,8 +292,8 @@ function () {
   }, {
     key: "openTarget",
     value: function openTarget(target) {
-      this.name = target.dataset.popup;
-      this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
+      this.href = target.id ? "#".concat(target.id) : null;
+      this.btn = this.href ? document.querySelector(".".concat(OPEN, "[href=\"").concat(this.href, "\"]")) : document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(target.dataset.popup, "\"]"));
       this.openPopup();
     }
   }, {
@@ -265,6 +312,8 @@ function () {
         });
       }
 
+      if (this.hashStart > 0) this.removeUrl();
+      this.resetElements();
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
   }, {
@@ -284,6 +333,7 @@ function () {
       document.addEventListener('click', this.open);
       document.addEventListener('click', this.close);
       document.addEventListener('keydown', this.close);
+      window.addEventListener('popstate', this.onPopstate);
     }
   }, {
     key: "_removeListeners",
@@ -291,6 +341,7 @@ function () {
       document.removeEventListener('click', this.open);
       document.removeEventListener('click', this.close);
       document.removeEventListener('keydown', this.close);
+      window.removeEventListener('popstate', this.onPopstate);
     }
   }, {
     key: "_removeOpenClassNames",
@@ -301,9 +352,19 @@ function () {
       if (this.options.toggleBodyClass) document.body.classList.remove(NO_SCROLL);
     }
   }, {
+    key: "_onLoad",
+    value: function _onLoad() {
+      if (this.hashStart > 0) {
+        this.href = window.location.href.slice(this.hashStart);
+        this.openPopup();
+      }
+    }
+  }, {
     key: "init",
     value: function init() {
       this._addListeners();
+
+      this._onLoad();
     }
   }, {
     key: "destroy",
@@ -337,6 +398,11 @@ function () {
       if (!this.popup) return null;
       return _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
     }
+  }, {
+    key: "hashStart",
+    get: function get() {
+      return window.location.href.indexOf(HASH);
+    }
   }]);
 
   return Popup;
@@ -366,8 +432,9 @@ popup.init(); // class MyPopup extends Popup {
 // const popup = new MyPopup()
 // popup.init()
 // console.log(popup);
-// const target = document.querySelector('.js-popup')
+// const target = document.querySelector('.js-popup[data-popup="popup-2"]')
+// const target = document.getElementById('popup-name')
 // setTimeout(() => {
-//   popup.openTarget(target);
-//   console.log('open target');
+//   popup.openTarget(target)
+//   console.log('open target')
 // }, 1000)

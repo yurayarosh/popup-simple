@@ -12,9 +12,17 @@ npm i popup-simple
 <div class="popup js-popup" data-popup="popup-name">
   <div class="popup__inner">
     <button class="popup__close js-popup-close"></button>
+      <!-- popup content -->    
+  </div>
+</div>
 
+<!-- by anchor -->
+<a href="#popup-name" class="btn js-popup-open">open popup</a>
+
+<div id="popup-name" class="popup js-popup">
+  <div class="popup__inner">
+    <button class="popup__close js-popup-close"></button>
       <!-- popup content -->
-    
   </div>
 </div>
 ```

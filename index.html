@@ -1,38 +1,104 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Document</title>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
 
-  <link rel="stylesheet" href="./style.css">
-</head>
-<body>
+    <link rel="stylesheet" href="./style.css" />
 
-  <button class="btn js-popup-open" data-popup-target="popup-name">open popup</button>
-  <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
+    <script>
+      if (!Element.prototype.closest) {
+        Element.prototype.closest = function (selector) {
+          let elem = this;
 
-  <!-- begin popup -->
-  <div class="popup js-popup" data-popup="popup-name">
-    <div class="popup__inner">
-      <button class="popup__close js-popup-close"></button>
+          if (!selector || typeof selector !== 'string') return null;
 
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus, libero? Natus rerum maiores voluptatibus. Facilis ullam amet saepe. Dolores velit, quo officiis nemo laboriosam animi ex magnam non consequatur blanditiis?</p>
+          const firstChar = selector.charAt(0);
 
-      <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
+          // Get closest match
+          for (; elem && elem !== document; elem = elem.parentNode) {
+            // If selector is a class
+            if (firstChar === '.') {
+              if (elem.classList && elem.classList.contains(selector.substr(1))) {
+                return elem;
+              }
+            }
+
+            // If selector is an ID
+            if (firstChar === '#') {
+              if (elem.id === selector.substr(1)) {
+                return elem;
+              }
+            }
+
+            // If selector is a data attribute
+            if (firstChar === '[') {
+              if (elem.hasAttribute(selector.substr(1, selector.length - 2))) {
+                return elem;
+              }
+            }
+
+            // If selector is a tag
+            if (elem.tagName.toLowerCase() === selector) {
+              return elem;
+            }
+          }
+          return null;
+        };
+      }
+    </script>
+  </head>
+  <body>
+    <button class="btn js-popup-open" data-popup-target="popup-name">open popup</button>
+    <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
+    <a href="#popup-name" class="btn js-popup-open">open popup by href</a>
+
+    <!-- begin popup -->
+    <div class="popup js-popup" data-popup="popup-name">
+      <div class="popup__inner">
+        <button class="popup__close js-popup-close"></button>
+
+        <p>
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus, libero? Natus rerum
+          maiores voluptatibus. Facilis ullam amet saepe. Dolores velit, quo officiis nemo
+          laboriosam animi ex magnam non consequatur blanditiis?
+        </p>
+
+        <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
+      </div>
     </div>
-  </div>
-  <!-- end popup -->
+    <!-- end popup -->
 
-   <!-- begin popup -->
-  <div class="popup js-popup" data-popup="popup-2">
-    <div class="popup__inner">
-      <button class="popup__close js-popup-close"></button>
+    <!-- begin popup -->
+    <div id="popup-name" class="popup js-popup">
+      <div class="popup__inner">
+        <button class="popup__close js-popup-close"></button>
 
-      <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus, libero? Natus rerum maiores voluptatibus. Facilis ullam amet saepe. Dolores velit, quo officiis nemo laboriosam animi ex magnam non consequatur blanditiis?</p>
+        <p>
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus, libero? Natus rerum
+          maiores voluptatibus. Facilis ullam amet saepe. Dolores velit, quo officiis nemo
+          laboriosam animi ex magnam non consequatur blanditiis?
+        </p>
+
+        <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
+      </div>
     </div>
-  </div>
-  <!-- end popup -->
-  
-  <script src="./test.js"></script>
-</body>
+    <!-- end popup -->
+
+    <!-- begin popup -->
+    <div class="popup js-popup" data-popup="popup-2">
+      <div class="popup__inner">
+        <button class="popup__close js-popup-close"></button>
+
+        <p>
+          Lorem ipsum dolor, sit amet consectetur adipisicing elit. Temporibus, libero? Natus rerum
+          maiores voluptatibus. Facilis ullam amet saepe. Dolores velit, quo officiis nemo
+          laboriosam animi ex magnam non consequatur blanditiis?
+        </p>
+      </div>
+    </div>
+    <!-- end popup -->
+
+    <script src="./test.js"></script>
+  </body>
 </html>

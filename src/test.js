@@ -32,10 +32,11 @@ popup.init()
 
 // console.log(popup);
 
-// const target = document.querySelector('.js-popup')
+// const target = document.querySelector('.js-popup[data-popup="popup-2"]')
+// const target = document.getElementById('popup-name')
 
 // setTimeout(() => {
-//   popup.openTarget(target);
-//   console.log('open target');
+//   popup.openTarget(target)
+//   console.log('open target')
   
 // }, 1000)

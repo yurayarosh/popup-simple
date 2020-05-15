@@ -16,7 +16,7 @@ export const BEMblock = (block, name) => {
     addMod,
     toggleMod,
     removeMod,
-    containsMod
+    containsMod,
   }
 }
 
@@ -28,4 +28,5 @@ export const constants = {
   IS_ACTIVE: 'active',
   NO_SCROLL: 'no-scroll',
   BTN_IN_POPUP_OPEN: 'js-btn-in-popup-open',
+  HASH: '#',
 }
