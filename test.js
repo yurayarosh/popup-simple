@@ -259,7 +259,9 @@ function () {
 
       this.name = this.btn ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href') : this.href;
 
-      if (this.name.indexOf(HASH) === 0) {
+      if (window.location.href.indexOf(HASH) > -1) {
+        this.options.shouldChangeUrl = false;
+      } else if (this.name.indexOf(HASH) === 0) {
         this.options.shouldChangeUrl = true;
         this.href = this.name;
       } else {
@@ -267,7 +269,7 @@ function () {
         if (this.href) this.removeUrl();
       }
 
-      this.popup = this.options.shouldChangeUrl ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
+      this.popup = this.name.indexOf(HASH) === 0 ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
       if (this.name && this.options.shouldChangeUrl) this.pushUrl();
       BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);

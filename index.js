@@ -166,7 +166,10 @@ class Popup {
       ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href')
       : this.href;
 
-    if (this.name.indexOf(HASH) === 0) {
+
+    if (window.location.href.indexOf(HASH) > -1) {
+      this.options.shouldChangeUrl = false;
+    } else if (this.name.indexOf(HASH) === 0) {
       this.options.shouldChangeUrl = true;
       this.href = this.name;
     } else {
@@ -174,9 +177,10 @@ class Popup {
       if (this.href) this.removeUrl();
     }
 
-    this.popup = this.options.shouldChangeUrl
+    this.popup = this.name.indexOf(HASH) === 0
       ? document.getElementById(this.name.slice(1))
       : document.querySelector(`.${TARGET}[data-popup="${this.name}"]`);
+
 
     if (!this.popup) return
 
