@@ -269,7 +269,7 @@ function () {
 
       this.popup = this.options.shouldChangeUrl ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
       if (!this.popup) return;
-      if (this.btn && this.options.shouldChangeUrl) this.pushUrl();
+      if (this.name && this.options.shouldChangeUrl) this.pushUrl();
       BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
 
       if (this.options.toggleBtnClass.toggle) {

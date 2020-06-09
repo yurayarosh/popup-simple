@@ -149,7 +149,7 @@ export default class Popup {
 
     if (!this.popup) return
 
-    if (this.btn && this.options.shouldChangeUrl) this.pushUrl()
+    if (this.name && this.options.shouldChangeUrl) this.pushUrl()
 
     BEMblock(this.popup, POPUP).addMod(IS_ACTIVE)
     if (this.options.toggleBtnClass.toggle) {
