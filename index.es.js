@@ -47,7 +47,7 @@ function closeAll() {
   });
   if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
     this.btns.forEach(btn => {
-      BEMblock(btn, this.options.preventScroll.name).removeMod(IS_ACTIVE);
+      BEMblock(btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
     });
   }
 

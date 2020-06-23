@@ -161,7 +161,7 @@ function closeAll() {
 
   if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
     this.btns.forEach(function (btn) {
-      BEMblock(btn, _this.options.preventScroll.name).removeMod(IS_ACTIVE);
+      BEMblock(btn, _this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
     });
   }
 
