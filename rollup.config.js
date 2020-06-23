@@ -5,7 +5,7 @@ export default [
   {
     input: 'src/main.js',
     output: {
-      file: 'index.min.js',
+      file: 'index.js',
       format: 'cjs',
     },
     plugins: [
@@ -19,7 +19,7 @@ export default [
     input: 'src/main.js',
     output: [
       {
-        file: 'index.js',
+        file: 'index.es.js',
         format: 'es',
       },
     ],

@@ -1,0 +1,7 @@
+export const POPUP = 'popup'
+export const OPEN = 'js-popup-open'
+export const TARGET = 'js-popup'
+export const CLOSE = 'js-popup-close'
+export const IS_ACTIVE = 'active'
+export const BTN_IN_POPUP_OPEN = 'js-btn-in-popup-open'
+export const HASH = '#'

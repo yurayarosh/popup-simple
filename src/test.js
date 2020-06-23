@@ -40,3 +40,8 @@ popup.init()
 //   console.log('open target')
   
 // }, 1000)
+
+// setTimeout(() => {
+//   popup.closeTarget(target)
+//   console.log('close target')  
+// }, 2000)
