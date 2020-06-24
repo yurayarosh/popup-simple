@@ -1,4 +1,4 @@
-import babel from 'rollup-plugin-babel'
+import babel from '@rollup/plugin-babel'
 import { uglify } from 'rollup-plugin-uglify'
 
 export default [
@@ -10,6 +10,7 @@ export default [
     },
     plugins: [
       babel({
+        babelHelpers: 'bundled',
         exclude: 'node_modules/**', // only transpile our source code
       }),
       uglify(),
@@ -32,6 +33,7 @@ export default [
     },
     plugins: [
       babel({
+        babelHelpers: 'bundled',
         exclude: 'node_modules/**', // only transpile our source code
       }),
     ],

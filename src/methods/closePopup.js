@@ -2,17 +2,27 @@ import { TARGET, IS_ACTIVE, OPEN, POPUP } from '../constants'
 import { BEMblock, allowScroll } from '../helpers'
 
 export default function closePopup() {
-  if (this.href && this.hashStart > 0) this.removeUrl()
+  const {
+    closeTrigger,
+    href,
+    hashStart,
+    removeUrl,
+    resetElements,
+    options: { toggleBtnClass, preventScroll },
+  } = this
 
-  this.popup = this.closeTrigger.closest(`.${TARGET}`)
-  this.name = this.popup.dataset.popup
-  this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`)
+  this.popup = closeTrigger.closest(`.${TARGET}`)
+  this.name = this.popup.dataset.popup || `#${this.popup.id}`
+  this.btn =
+    document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`) ||
+    document.querySelector(`.${OPEN}[href="${this.name}"]`)
+
+  if (href && href === this.name && hashStart > 0) removeUrl()
 
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE)
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock(this.btn, this.options.preventScroll.name).removeMod(IS_ACTIVE)
-  }
-  if (this.options.preventScroll && !this.openPopups.length) allowScroll()
+  if (toggleBtnClass.toggle) BEMblock(this.btn, toggleBtnClass.name).removeMod(IS_ACTIVE)
 
-  this.resetElements()
+  if (preventScroll && !this.openPopups.length) allowScroll()
+
+  resetElements()
 }

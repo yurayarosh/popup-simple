@@ -3,10 +3,10 @@ import Popup from './main'
 const popup = new Popup()
 
 popup.onOpen = () => {
-  console.log(popup)
+  console.log('onOpen', popup)
 }
 popup.onClose = () => {
-  console.log('close', popup)
+  console.log('onClose', popup)
 }
 
 popup.init()
@@ -18,13 +18,13 @@ popup.init()
 
 //   onOpen() {
 //     console.log(this, 'open');
-    
+
 //   }
 
 //   onClose() {
 //     console.log(this, 'close');
-    
-//   }  
+
+//   }
 // }
 
 // const popup = new MyPopup()
@@ -38,10 +38,18 @@ popup.init()
 // setTimeout(() => {
 //   popup.openTarget(target)
 //   console.log('open target')
-  
+
 // }, 1000)
 
 // setTimeout(() => {
-//   popup.closeTarget(target)
-//   console.log('close target')  
-// }, 2000)
+//   // popup.closeTarget(target)
+//   // console.log('close target')
+
+//   // popup.closeAll()
+//   popup.destroy()
+// }, 5000)
+
+// document.addEventListener('keyup', ({ code }) => {
+
+//   if (code === 'Space') popup.closeAll()
+// })

@@ -2,18 +2,29 @@ import { HASH, TARGET, IS_ACTIVE, POPUP } from '../constants'
 import { BEMblock, preventScroll } from '../helpers'
 
 export default function openPopup() {
-  this.name = this.btn
-    ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href')
-    : this.href
+  const {
+    btn,
+    href,
+    observer,
+    observedPopups,
+    removeUrl,
+    pushUrl,
+    onOpen,
+    onClose,
+    options: { toggleBtnClass, preventScroll: shouldPreventScroll },
+  } = this
+  let shouldChangeUrl
+
+  this.name = btn ? btn.dataset.popupTarget || href || btn.getAttribute('href') : href
 
   if (window.location.href.indexOf(HASH) > -1) {
-    this.options.shouldChangeUrl = false
+    shouldChangeUrl = false
   } else if (this.name.indexOf(HASH) === 0) {
-    this.options.shouldChangeUrl = true
+    shouldChangeUrl = true
     this.href = this.name
   } else {
-    this.options.shouldChangeUrl = false
-    if (this.href) this.removeUrl()
+    shouldChangeUrl = false
+    if (href) removeUrl()
   }
 
   this.popup =
@@ -23,23 +34,25 @@ export default function openPopup() {
 
   if (!this.popup) return
 
-  if (this.name && this.options.shouldChangeUrl) this.pushUrl()
+  if (this.name && shouldChangeUrl) pushUrl()
 
   BEMblock(this.popup, POPUP).addMod(IS_ACTIVE)
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE)
+  if (toggleBtnClass.toggle) {
+    BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE)
   }
-  if (this.options.preventScroll) preventScroll()
+  if (shouldPreventScroll) preventScroll()
 
-  if (this.onOpen) this.onOpen()
+  if (onClose) {
+    const isObserving = !!observedPopups.filter(p => p === this.popup)[0]
+    if (!isObserving) {
+      observer.observe(this.popup, {
+        attributes: true,
+        attributeFilter: ['class'],
+        attributeOldValue: true,
+      })
+      observedPopups.push(this.popup)
+    }
+  }
 
-  const isObserving = !!this.observedPopups.filter(p => p === this.popup)[0]
-
-  if (isObserving) return
-  this.observer.observe(this.popup, {
-    attributes: true,
-    attributeFilter: ['class'],
-    attributeOldValue: true,
-  })
-  this.observedPopups.push(this.popup)
+  if (onOpen) onOpen()
 }

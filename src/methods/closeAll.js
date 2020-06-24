@@ -1,20 +1,26 @@
-import { IS_ACTIVE } from '../constants'
-import { allowScroll } from '../helpers'
+import { IS_ACTIVE, POPUP } from '../constants'
+import { allowScroll, BEMblock } from '../helpers'
 
 export default function closeAll() {
   if (!this.openPopups.length) return
 
+  const {
+    resetElements,
+    removeUrl,
+    options: { toggleBtnClass, preventScroll },
+  } = this
+
   this.openPopups.forEach(popup => {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE)
   })
-  if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
+  if (toggleBtnClass.toggle && this.btns.length > 0) {
     this.btns.forEach(btn => {
-      BEMblock(btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE)
+      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE)
     })
   }
 
-  if (this.hashStart > 0) this.removeUrl()
-  this.resetElements()
+  if (this.hashStart > 0) removeUrl()
+  resetElements()
 
-  if (this.options.preventScroll) allowScroll()
+  if (preventScroll) allowScroll()
 }

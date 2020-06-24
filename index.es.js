@@ -1,4 +1,4 @@
-const POPUP$1 = 'popup';
+const POPUP = 'popup';
 const OPEN = 'js-popup-open';
 const TARGET = 'js-popup';
 const CLOSE = 'js-popup-close';
@@ -6,7 +6,7 @@ const IS_ACTIVE = 'active';
 const BTN_IN_POPUP_OPEN = 'js-btn-in-popup-open';
 const HASH = '#';
 
-const BEMblock$1 = (block, name) => {
+const BEMblock = (block, name) => {
   const addMod = mod => {
     block.classList.add(`${name}--${mod}`);
   };
@@ -42,27 +42,31 @@ function allowScroll() {
 function closeAll() {
   if (!this.openPopups.length) return
 
+  const {
+    resetElements,
+    removeUrl,
+    options: { toggleBtnClass, preventScroll },
+  } = this;
+
   this.openPopups.forEach(popup => {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
   });
-  if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
+  if (toggleBtnClass.toggle && this.btns.length > 0) {
     this.btns.forEach(btn => {
-      BEMblock(btn, this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
+      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
     });
   }
 
-  if (this.hashStart > 0) this.removeUrl();
-  this.resetElements();
+  if (this.hashStart > 0) removeUrl();
+  resetElements();
 
-  if (this.options.preventScroll) allowScroll();
+  if (preventScroll) allowScroll();
 }
 
 function resetElements() {
   this.btn = null;
   this.popup = null;
   this.closeTrigger = null;
-  this.observedPopups = [];
-  this.options.shouldChangeUrl = false;
 }
 
 function pushUrl() {
@@ -77,27 +81,37 @@ function removeUrl() {
 }
 
 function handlePopState() {
+  const { href, btn, closePopup, openPopup } = this;
+
   if (this.hashStart === -1) {
     this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-    this.closePopup();
+    closePopup();
   }
 
   if (this.hashStart > 0) {
-    if (!this.href && !this.btn) this.href = window.location.href.slice(this.hashStart);
-    this.openPopup();
+    if (!href && !btn) this.href = window.location.href.slice(this.hashStart);
+    openPopup();
   }
 }
 
 function handleEscClick() {
   if (!this.openPopups.length) return
+  const { closePopup } = this;
+  
   this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-  this.closePopup();
+  closePopup();
 }
 
 function handleBtnClick(e) {
-  const closeBtn = e.target.closest(`.${CLOSE}`);
-  if (this.options.closeOnOverlayClick) {
-    const popup = e.target.classList && e.target.classList.contains(TARGET) ? e.target : null;
+  const { target } = e;
+  const {
+    closePopup,
+    options: { closeOnOverlayClick },
+  } = this;
+  const closeBtn = target.closest(`.${CLOSE}`);
+
+  if (closeOnOverlayClick) {
+    const popup = target.classList && target.classList.contains(TARGET) ? target : null;
     this.closeTrigger = closeBtn || popup;
   } else {
     this.closeTrigger = closeBtn;
@@ -106,36 +120,57 @@ function handleBtnClick(e) {
   if (!this.closeTrigger) return
 
   e.preventDefault();
-  this.closePopup();
+  closePopup();
 }
 
 function handleOpen(e) {
-  this.btn = e.target.closest(`.${OPEN}`);
+  const { target } = e;
+  const { openPopup } = this;  
+  this.btn = target.closest(`.${OPEN}`);
+  
   if (!this.btn) return
-  if (e.target.closest(`.${BTN_IN_POPUP_OPEN}`)) return
+  if (target.closest(`.${BTN_IN_POPUP_OPEN}`)) return
 
-  this.openPopup();
+  openPopup();
   e.preventDefault();
 }
 
 function handleClose(e) {
-  if (this.options.escapeHandler && e.code === 'Escape') this.handleEscClick(e);
-  if (e.type === 'click') this.handleBtnClick(e);
+  const { code, type } = e;
+  const {
+    handleEscClick,
+    handleBtnClick,
+    options: { escapeHandler },
+  } = this;
+
+  if (escapeHandler && code === 'Escape') handleEscClick(e);
+  if (type === 'click') handleBtnClick(e);
 }
 
 function openPopup() {
-  this.name = this.btn
-    ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href')
-    : this.href;
+  const {
+    btn,
+    href,
+    observer,
+    observedPopups,
+    removeUrl,
+    pushUrl,
+    onOpen,
+    onClose,
+    options: { toggleBtnClass, preventScroll: shouldPreventScroll },
+  } = this;
+  let shouldChangeUrl;
+
+  this.name = btn ? btn.dataset.popupTarget || href || btn.getAttribute('href') : href;
 
   if (window.location.href.indexOf(HASH) > -1) {
-    this.options.shouldChangeUrl = false;
+    shouldChangeUrl = false;
   } else if (this.name.indexOf(HASH) === 0) {
-    this.options.shouldChangeUrl = true;
+    shouldChangeUrl = true;
     this.href = this.name;
   } else {
-    this.options.shouldChangeUrl = false;
-    if (this.href) this.removeUrl();
+    shouldChangeUrl = false;
+    if (href) removeUrl();
   }
 
   this.popup =
@@ -145,50 +180,63 @@ function openPopup() {
 
   if (!this.popup) return
 
-  if (this.name && this.options.shouldChangeUrl) this.pushUrl();
+  if (this.name && shouldChangeUrl) pushUrl();
 
-  BEMblock$1(this.popup, POPUP$1).addMod(IS_ACTIVE);
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock$1(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
+  BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
+  if (toggleBtnClass.toggle) {
+    BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
   }
-  if (this.options.preventScroll) preventScroll();
+  if (shouldPreventScroll) preventScroll();
 
-  if (this.onOpen) this.onOpen();
+  if (onClose) {
+    const isObserving = !!observedPopups.filter(p => p === this.popup)[0];
+    if (!isObserving) {
+      observer.observe(this.popup, {
+        attributes: true,
+        attributeFilter: ['class'],
+        attributeOldValue: true,
+      });
+      observedPopups.push(this.popup);
+    }
+  }
 
-  const isObserving = !!this.observedPopups.filter(p => p === this.popup)[0];
-
-  if (isObserving) return
-  this.observer.observe(this.popup, {
-    attributes: true,
-    attributeFilter: ['class'],
-    attributeOldValue: true,
-  });
-  this.observedPopups.push(this.popup);
+  if (onOpen) onOpen();
 }
 
 function closePopup() {
-  if (this.href && this.hashStart > 0) this.removeUrl();
+  const {
+    closeTrigger,
+    href,
+    hashStart,
+    removeUrl,
+    resetElements,
+    options: { toggleBtnClass, preventScroll },
+  } = this;
 
-  this.popup = this.closeTrigger.closest(`.${TARGET}`);
-  this.name = this.popup.dataset.popup;
-  this.btn = document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`);
+  this.popup = closeTrigger.closest(`.${TARGET}`);
+  this.name = this.popup.dataset.popup || `#${this.popup.id}`;
+  this.btn =
+    document.querySelector(`.${OPEN}[data-popup-target="${this.name}"]`) ||
+    document.querySelector(`.${OPEN}[href="${this.name}"]`);
 
-  BEMblock$1(this.popup, POPUP$1).removeMod(IS_ACTIVE);
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock$1(this.btn, this.options.preventScroll.name).removeMod(IS_ACTIVE);
-  }
-  if (this.options.preventScroll && !this.openPopups.length) allowScroll();
+  if (href && href === this.name && hashStart > 0) removeUrl();
 
-  this.resetElements();
+  BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
+  if (toggleBtnClass.toggle) BEMblock(this.btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+
+  if (preventScroll && !this.openPopups.length) allowScroll();
+
+  resetElements();
 }
 
-function openTarget(target) {
-  this.href = target.id ? `#${target.id}` : null;
+function openTarget({ id, dataset: { popup: name } }) {
+  const { openPopup } = this;
+  this.href = id ? `#${id}` : null;
   this.btn = this.href
     ? document.querySelector(`.${OPEN}[href="${this.href}"]`)
-    : document.querySelector(`.${OPEN}[data-popup-target="${target.dataset.popup}"]`);
+    : document.querySelector(`.${OPEN}[data-popup-target="${name}"]`);
 
-  this.openPopup();
+  openPopup();
 }
 
 function closeTarget(target) {
@@ -197,10 +245,11 @@ function closeTarget(target) {
 }
 
 function handleMutation(mutationsList) {
+  const { onClose } = this;
+  if (!onClose) return
+  
   mutationsList.forEach(({ oldValue }) => {
-    if (oldValue.indexOf(`${POPUP$1}--${IS_ACTIVE}`) > 0) {
-      if (this.onClose) this.onClose();
-    }
+    if (oldValue.indexOf(`${POPUP}--${IS_ACTIVE}`) > 0) onClose();
   });
 }
 
@@ -230,15 +279,9 @@ class Popup {
     this.closeTarget = closeTarget.bind(this);
     this.handleMutation = handleMutation.bind(this);
 
-    this.open = this.handleOpen.bind(this);
-    this.close = this.handleClose.bind(this);
-    this.observer = new MutationObserver(this.handleMutation.bind(this));
-    this.onPopstate = this.handlePopState.bind(this);
-
     this.btn = null;
     this.popup = null;
     this.closeTrigger = null;
-
     this.observedPopups = [];
   }
 
@@ -251,37 +294,37 @@ class Popup {
   }
 
   get openPopups() {
-    return this.popups.filter(popup => BEMblock$1(popup, POPUP$1).containsMod(IS_ACTIVE))
-  }
-
-  get closeBtns() {
-    if (!this.popup) return null
-    return [...this.popup.querySelectorAll(`.${CLOSE}`)]
+    return this.popups.filter(popup => BEMblock(popup, POPUP).containsMod(IS_ACTIVE))
   }
 
   get hashStart() {
     return window.location.href.indexOf(HASH)
   }
 
+  get shouldAddPopstate() {
+    return (
+      this.btns.filter(btn => btn.getAttribute('href') && btn.getAttribute('href').length > 2)
+        .length > 0
+    )
+  }
+
   _addListeners() {
-    document.addEventListener('click', this.open);
-    document.addEventListener('click', this.close);
-    document.addEventListener('keydown', this.close);
-    window.addEventListener('popstate', this.onPopstate);
+    this.openHandler = this.handleOpen.bind(this);
+    this.closeHandler = this.handleClose.bind(this);
+    this.popstateHandler = this.handlePopState.bind(this);
+    if (this.onClose) this.observer = new MutationObserver(this.handleMutation.bind(this));
+
+    document.addEventListener('click', this.openHandler);
+    document.addEventListener('click', this.closeHandler);
+    if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler);
+    if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler);
   }
 
   _removeListeners() {
-    document.removeEventListener('click', this.open);
-    document.removeEventListener('click', this.close);
-    document.removeEventListener('keydown', this.close);
-    window.removeEventListener('popstate', this.onPopstate);
-  }
-
-  _removeOpenClassNames() {
-    this.popups.forEach(popup => {
-      BEMblock$1(popup, POPUP$1).removeMod(IS_ACTIVE);
-    });
-    if (this.options.preventScroll) preventScroll();
+    document.removeEventListener('click', this.openHandler);
+    document.removeEventListener('click', this.closeHandler);
+    if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler);
+    if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler);
   }
 
   _onLoad() {
@@ -297,9 +340,9 @@ class Popup {
   }
 
   destroy() {
+    this.closeAll();
     this._removeListeners();
-    this._removeOpenClassNames();
-    this.observer.disconnect();
+    if (this.observer) this.observer.disconnect();
   }
 }
 

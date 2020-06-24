@@ -1,9 +1,15 @@
-import { CLOSE, TARGET } from "../constants"
+import { CLOSE, TARGET } from '../constants'
 
 export default function handleBtnClick(e) {
-  const closeBtn = e.target.closest(`.${CLOSE}`)
-  if (this.options.closeOnOverlayClick) {
-    const popup = e.target.classList && e.target.classList.contains(TARGET) ? e.target : null
+  const { target } = e
+  const {
+    closePopup,
+    options: { closeOnOverlayClick },
+  } = this
+  const closeBtn = target.closest(`.${CLOSE}`)
+
+  if (closeOnOverlayClick) {
+    const popup = target.classList && target.classList.contains(TARGET) ? target : null
     this.closeTrigger = closeBtn || popup
   } else {
     this.closeTrigger = closeBtn
@@ -12,5 +18,5 @@ export default function handleBtnClick(e) {
   if (!this.closeTrigger) return
 
   e.preventDefault()
-  this.closePopup()
+  closePopup()
 }

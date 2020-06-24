@@ -15,8 +15,8 @@ import handleMutation from './methods/handleMutation'
 
 import defaultOptions from './defaultOptions'
 
-import { BEMblock, preventScroll } from './helpers'
-import { TARGET, OPEN, POPUP, IS_ACTIVE, CLOSE, HASH } from './constants'
+import { BEMblock } from './helpers'
+import { TARGET, OPEN, POPUP, IS_ACTIVE, HASH } from './constants'
 
 export default class Popup {
   constructor(options) {
@@ -37,15 +37,9 @@ export default class Popup {
     this.closeTarget = closeTarget.bind(this)
     this.handleMutation = handleMutation.bind(this)
 
-    this.open = this.handleOpen.bind(this)
-    this.close = this.handleClose.bind(this)
-    this.observer = new MutationObserver(this.handleMutation.bind(this))
-    this.onPopstate = this.handlePopState.bind(this)
-
     this.btn = null
     this.popup = null
     this.closeTrigger = null
-
     this.observedPopups = []
   }
 
@@ -61,34 +55,34 @@ export default class Popup {
     return this.popups.filter(popup => BEMblock(popup, POPUP).containsMod(IS_ACTIVE))
   }
 
-  get closeBtns() {
-    if (!this.popup) return null
-    return [...this.popup.querySelectorAll(`.${CLOSE}`)]
-  }
-
   get hashStart() {
     return window.location.href.indexOf(HASH)
   }
 
+  get shouldAddPopstate() {
+    return (
+      this.btns.filter(btn => btn.getAttribute('href') && btn.getAttribute('href').length > 2)
+        .length > 0
+    )
+  }
+
   _addListeners() {
-    document.addEventListener('click', this.open)
-    document.addEventListener('click', this.close)
-    document.addEventListener('keydown', this.close)
-    window.addEventListener('popstate', this.onPopstate)
+    this.openHandler = this.handleOpen.bind(this)
+    this.closeHandler = this.handleClose.bind(this)
+    this.popstateHandler = this.handlePopState.bind(this)
+    if (this.onClose) this.observer = new MutationObserver(this.handleMutation.bind(this))
+
+    document.addEventListener('click', this.openHandler)
+    document.addEventListener('click', this.closeHandler)
+    if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler)
+    if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler)
   }
 
   _removeListeners() {
-    document.removeEventListener('click', this.open)
-    document.removeEventListener('click', this.close)
-    document.removeEventListener('keydown', this.close)
-    window.removeEventListener('popstate', this.onPopstate)
-  }
-
-  _removeOpenClassNames() {
-    this.popups.forEach(popup => {
-      BEMblock(popup, POPUP).removeMod(IS_ACTIVE)
-    })
-    if (this.options.preventScroll) preventScroll()
+    document.removeEventListener('click', this.openHandler)
+    document.removeEventListener('click', this.closeHandler)
+    if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler)
+    if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler)
   }
 
   _onLoad() {
@@ -104,8 +98,8 @@ export default class Popup {
   }
 
   destroy() {
+    this.closeAll()
     this._removeListeners()
-    this._removeOpenClassNames()
-    this.observer.disconnect()
+    if (this.observer) this.observer.disconnect()
   }
 }

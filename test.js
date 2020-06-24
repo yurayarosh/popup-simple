@@ -104,7 +104,7 @@ function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-var POPUP$1 = 'popup';
+var POPUP = 'popup';
 var OPEN = 'js-popup-open';
 var TARGET = 'js-popup';
 var CLOSE = 'js-popup-close';
@@ -112,7 +112,7 @@ var IS_ACTIVE = 'active';
 var BTN_IN_POPUP_OPEN = 'js-btn-in-popup-open';
 var HASH = '#';
 
-var BEMblock$1 = function BEMblock(block, name) {
+var BEMblock = function BEMblock(block, name) {
   var addMod = function addMod(mod) {
     block.classList.add("".concat(name, "--").concat(mod));
   };
@@ -152,30 +152,31 @@ function allowScroll() {
 }
 
 function closeAll() {
-  var _this = this;
-
   if (!this.openPopups.length) return;
+  var resetElements = this.resetElements,
+      removeUrl = this.removeUrl,
+      _this$options = this.options,
+      toggleBtnClass = _this$options.toggleBtnClass,
+      preventScroll = _this$options.preventScroll;
   this.openPopups.forEach(function (popup) {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
   });
 
-  if (this.options.toggleBtnClass.toggle && this.btns.length > 0) {
+  if (toggleBtnClass.toggle && this.btns.length > 0) {
     this.btns.forEach(function (btn) {
-      BEMblock(btn, _this.options.toggleBtnClass.name).removeMod(IS_ACTIVE);
+      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
     });
   }
 
-  if (this.hashStart > 0) this.removeUrl();
-  this.resetElements();
-  if (this.options.preventScroll) allowScroll();
+  if (this.hashStart > 0) removeUrl();
+  resetElements();
+  if (preventScroll) allowScroll();
 }
 
 function resetElements() {
   this.btn = null;
   this.popup = null;
   this.closeTrigger = null;
-  this.observedPopups = [];
-  this.options.shouldChangeUrl = false;
 }
 
 function pushUrl() {
@@ -190,28 +191,37 @@ function removeUrl() {
 }
 
 function handlePopState() {
+  var href = this.href,
+      btn = this.btn,
+      closePopup = this.closePopup,
+      openPopup = this.openPopup;
+
   if (this.hashStart === -1) {
     this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-    this.closePopup();
+    closePopup();
   }
 
   if (this.hashStart > 0) {
-    if (!this.href && !this.btn) this.href = window.location.href.slice(this.hashStart);
-    this.openPopup();
+    if (!href && !btn) this.href = window.location.href.slice(this.hashStart);
+    openPopup();
   }
 }
 
 function handleEscClick() {
   if (!this.openPopups.length) return;
+  var closePopup = this.closePopup;
   this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-  this.closePopup();
+  closePopup();
 }
 
 function handleBtnClick(e) {
-  var closeBtn = e.target.closest(".".concat(CLOSE));
+  var target = e.target;
+  var closePopup = this.closePopup,
+      closeOnOverlayClick = this.options.closeOnOverlayClick;
+  var closeBtn = target.closest(".".concat(CLOSE));
 
-  if (this.options.closeOnOverlayClick) {
-    var popup = e.target.classList && e.target.classList.contains(TARGET) ? e.target : null;
+  if (closeOnOverlayClick) {
+    var popup = target.classList && target.classList.contains(TARGET) ? target : null;
     this.closeTrigger = closeBtn || popup;
   } else {
     this.closeTrigger = closeBtn;
@@ -219,79 +229,111 @@ function handleBtnClick(e) {
 
   if (!this.closeTrigger) return;
   e.preventDefault();
-  this.closePopup();
+  closePopup();
 }
 
 function handleOpen(e) {
-  this.btn = e.target.closest(".".concat(OPEN));
+  var target = e.target;
+  var openPopup = this.openPopup;
+  this.btn = target.closest(".".concat(OPEN));
   if (!this.btn) return;
-  if (e.target.closest(".".concat(BTN_IN_POPUP_OPEN))) return;
-  this.openPopup();
+  if (target.closest(".".concat(BTN_IN_POPUP_OPEN))) return;
+  openPopup();
   e.preventDefault();
 }
 
 function handleClose(e) {
-  if (this.options.escapeHandler && e.code === 'Escape') this.handleEscClick(e);
-  if (e.type === 'click') this.handleBtnClick(e);
+  var code = e.code,
+      type = e.type;
+  var handleEscClick = this.handleEscClick,
+      handleBtnClick = this.handleBtnClick,
+      escapeHandler = this.options.escapeHandler;
+  if (escapeHandler && code === 'Escape') handleEscClick(e);
+  if (type === 'click') handleBtnClick(e);
 }
 
 function openPopup() {
   var _this = this;
 
-  this.name = this.btn ? this.btn.dataset.popupTarget || this.href || this.btn.getAttribute('href') : this.href;
+  var btn = this.btn,
+      href = this.href,
+      observer = this.observer,
+      observedPopups = this.observedPopups,
+      removeUrl = this.removeUrl,
+      pushUrl = this.pushUrl,
+      onOpen = this.onOpen,
+      onClose = this.onClose,
+      _this$options = this.options,
+      toggleBtnClass = _this$options.toggleBtnClass,
+      shouldPreventScroll = _this$options.preventScroll;
+  var shouldChangeUrl;
+  this.name = btn ? btn.dataset.popupTarget || href || btn.getAttribute('href') : href;
 
   if (window.location.href.indexOf(HASH) > -1) {
-    this.options.shouldChangeUrl = false;
+    shouldChangeUrl = false;
   } else if (this.name.indexOf(HASH) === 0) {
-    this.options.shouldChangeUrl = true;
+    shouldChangeUrl = true;
     this.href = this.name;
   } else {
-    this.options.shouldChangeUrl = false;
-    if (this.href) this.removeUrl();
+    shouldChangeUrl = false;
+    if (href) removeUrl();
   }
 
   this.popup = this.name.indexOf(HASH) === 0 ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
   if (!this.popup) return;
-  if (this.name && this.options.shouldChangeUrl) this.pushUrl();
-  BEMblock$1(this.popup, POPUP$1).addMod(IS_ACTIVE);
+  if (this.name && shouldChangeUrl) pushUrl();
+  BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
 
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock$1(this.btn, this.options.toggleBtnClass.name).addMod(IS_ACTIVE);
+  if (toggleBtnClass.toggle) {
+    BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
   }
 
-  if (this.options.preventScroll) preventScroll();
-  if (this.onOpen) this.onOpen();
-  var isObserving = !!this.observedPopups.filter(function (p) {
-    return p === _this.popup;
-  })[0];
-  if (isObserving) return;
-  this.observer.observe(this.popup, {
-    attributes: true,
-    attributeFilter: ['class'],
-    attributeOldValue: true
-  });
-  this.observedPopups.push(this.popup);
+  if (shouldPreventScroll) preventScroll();
+
+  if (onClose) {
+    var isObserving = !!observedPopups.filter(function (p) {
+      return p === _this.popup;
+    })[0];
+
+    if (!isObserving) {
+      observer.observe(this.popup, {
+        attributes: true,
+        attributeFilter: ['class'],
+        attributeOldValue: true
+      });
+      observedPopups.push(this.popup);
+    }
+  }
+
+  if (onOpen) onOpen();
 }
 
 function closePopup() {
-  if (this.href && this.hashStart > 0) this.removeUrl();
-  this.popup = this.closeTrigger.closest(".".concat(TARGET));
-  this.name = this.popup.dataset.popup;
-  this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]"));
-  BEMblock$1(this.popup, POPUP$1).removeMod(IS_ACTIVE);
-
-  if (this.options.toggleBtnClass.toggle) {
-    BEMblock$1(this.btn, this.options.preventScroll.name).removeMod(IS_ACTIVE);
-  }
-
-  if (this.options.preventScroll && !this.openPopups.length) allowScroll();
-  this.resetElements();
+  var closeTrigger = this.closeTrigger,
+      href = this.href,
+      hashStart = this.hashStart,
+      removeUrl = this.removeUrl,
+      resetElements = this.resetElements,
+      _this$options = this.options,
+      toggleBtnClass = _this$options.toggleBtnClass,
+      preventScroll = _this$options.preventScroll;
+  this.popup = closeTrigger.closest(".".concat(TARGET));
+  this.name = this.popup.dataset.popup || "#".concat(this.popup.id);
+  this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]")) || document.querySelector(".".concat(OPEN, "[href=\"").concat(this.name, "\"]"));
+  if (href && href === this.name && hashStart > 0) removeUrl();
+  BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
+  if (toggleBtnClass.toggle) BEMblock(this.btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+  if (preventScroll && !this.openPopups.length) allowScroll();
+  resetElements();
 }
 
-function openTarget(target) {
-  this.href = target.id ? "#".concat(target.id) : null;
-  this.btn = this.href ? document.querySelector(".".concat(OPEN, "[href=\"").concat(this.href, "\"]")) : document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(target.dataset.popup, "\"]"));
-  this.openPopup();
+function openTarget(_ref) {
+  var id = _ref.id,
+      name = _ref.dataset.popup;
+  var openPopup = this.openPopup;
+  this.href = id ? "#".concat(id) : null;
+  this.btn = this.href ? document.querySelector(".".concat(OPEN, "[href=\"").concat(this.href, "\"]")) : document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(name, "\"]"));
+  openPopup();
 }
 
 function closeTarget(target) {
@@ -300,14 +342,11 @@ function closeTarget(target) {
 }
 
 function handleMutation(mutationsList) {
-  var _this = this;
-
+  var onClose = this.onClose;
+  if (!onClose) return;
   mutationsList.forEach(function (_ref) {
     var oldValue = _ref.oldValue;
-
-    if (oldValue.indexOf("".concat(POPUP$1, "--").concat(IS_ACTIVE)) > 0) {
-      if (_this.onClose) _this.onClose();
-    }
+    if (oldValue.indexOf("".concat(POPUP, "--").concat(IS_ACTIVE)) > 0) onClose();
   });
 }
 
@@ -337,10 +376,6 @@ var Popup = /*#__PURE__*/function () {
     this.openTarget = openTarget.bind(this);
     this.closeTarget = closeTarget.bind(this);
     this.handleMutation = handleMutation.bind(this);
-    this.open = this.handleOpen.bind(this);
-    this.close = this.handleClose.bind(this);
-    this.observer = new MutationObserver(this.handleMutation.bind(this));
-    this.onPopstate = this.handlePopState.bind(this);
     this.btn = null;
     this.popup = null;
     this.closeTrigger = null;
@@ -350,26 +385,22 @@ var Popup = /*#__PURE__*/function () {
   _createClass(Popup, [{
     key: "_addListeners",
     value: function _addListeners() {
-      document.addEventListener('click', this.open);
-      document.addEventListener('click', this.close);
-      document.addEventListener('keydown', this.close);
-      window.addEventListener('popstate', this.onPopstate);
+      this.openHandler = this.handleOpen.bind(this);
+      this.closeHandler = this.handleClose.bind(this);
+      this.popstateHandler = this.handlePopState.bind(this);
+      if (this.onClose) this.observer = new MutationObserver(this.handleMutation.bind(this));
+      document.addEventListener('click', this.openHandler);
+      document.addEventListener('click', this.closeHandler);
+      if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler);
+      if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler);
     }
   }, {
     key: "_removeListeners",
     value: function _removeListeners() {
-      document.removeEventListener('click', this.open);
-      document.removeEventListener('click', this.close);
-      document.removeEventListener('keydown', this.close);
-      window.removeEventListener('popstate', this.onPopstate);
-    }
-  }, {
-    key: "_removeOpenClassNames",
-    value: function _removeOpenClassNames() {
-      this.popups.forEach(function (popup) {
-        BEMblock$1(popup, POPUP$1).removeMod(IS_ACTIVE);
-      });
-      if (this.options.preventScroll) preventScroll();
+      document.removeEventListener('click', this.openHandler);
+      document.removeEventListener('click', this.closeHandler);
+      if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler);
+      if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler);
     }
   }, {
     key: "_onLoad",
@@ -389,11 +420,11 @@ var Popup = /*#__PURE__*/function () {
   }, {
     key: "destroy",
     value: function destroy() {
+      this.closeAll();
+
       this._removeListeners();
 
-      this._removeOpenClassNames();
-
-      this.observer.disconnect();
+      if (this.observer) this.observer.disconnect();
     }
   }, {
     key: "popups",
@@ -409,19 +440,20 @@ var Popup = /*#__PURE__*/function () {
     key: "openPopups",
     get: function get() {
       return this.popups.filter(function (popup) {
-        return BEMblock$1(popup, POPUP$1).containsMod(IS_ACTIVE);
+        return BEMblock(popup, POPUP).containsMod(IS_ACTIVE);
       });
-    }
-  }, {
-    key: "closeBtns",
-    get: function get() {
-      if (!this.popup) return null;
-      return _toConsumableArray(this.popup.querySelectorAll(".".concat(CLOSE)));
     }
   }, {
     key: "hashStart",
     get: function get() {
       return window.location.href.indexOf(HASH);
+    }
+  }, {
+    key: "shouldAddPopstate",
+    get: function get() {
+      return this.btns.filter(function (btn) {
+        return btn.getAttribute('href') && btn.getAttribute('href').length > 2;
+      }).length > 0;
     }
   }]);
 
@@ -431,11 +463,11 @@ var Popup = /*#__PURE__*/function () {
 var popup = new Popup();
 
 popup.onOpen = function () {
-  console.log(popup);
+  console.log('onOpen', popup);
 };
 
 popup.onClose = function () {
-  console.log('close', popup);
+  console.log('onClose', popup);
 };
 
 popup.init(); // class MyPopup extends Popup {
@@ -447,7 +479,7 @@ popup.init(); // class MyPopup extends Popup {
 //   }
 //   onClose() {
 //     console.log(this, 'close');
-//   }  
+//   }
 // }
 // const popup = new MyPopup()
 // popup.init()
@@ -459,6 +491,11 @@ popup.init(); // class MyPopup extends Popup {
 //   console.log('open target')
 // }, 1000)
 // setTimeout(() => {
-//   popup.closeTarget(target)
-//   console.log('close target')  
-// }, 2000)
+//   // popup.closeTarget(target)
+//   // console.log('close target')
+//   // popup.closeAll()
+//   popup.destroy()
+// }, 5000)
+// document.addEventListener('keyup', ({ code }) => {
+//   if (code === 'Space') popup.closeAll()
+// })

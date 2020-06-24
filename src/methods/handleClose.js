@@ -1,4 +1,11 @@
 export default function handleClose(e) {
-  if (this.options.escapeHandler && e.code === 'Escape') this.handleEscClick(e)
-  if (e.type === 'click') this.handleBtnClick(e)
+  const { code, type } = e
+  const {
+    handleEscClick,
+    handleBtnClick,
+    options: { escapeHandler },
+  } = this
+
+  if (escapeHandler && code === 'Escape') handleEscClick(e)
+  if (type === 'click') handleBtnClick(e)
 }
