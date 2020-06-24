@@ -39,7 +39,7 @@ popup.init()
 Standart options
 ```js
 {
-  toggleBodyClass: true, // toggle body overflow hidden class
+  preventScroll: true, // add body overflow hidden
   escapeHandler: true, // handle Esc button click
   closeOnOverlayClick: true, // close on overlay click
   toggleBtnClass: false, // { toggle: true, name: 'btn' } allow trigger button class name toggling
