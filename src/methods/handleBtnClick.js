@@ -1,4 +1,4 @@
-import { CLOSE, TARGET } from '../constants'
+import { CLOSE, TARGET, OPEN } from '../constants'
 
 export default function handleBtnClick(e) {
   const { target } = e
@@ -6,7 +6,10 @@ export default function handleBtnClick(e) {
     closePopup,
     options: { closeOnOverlayClick },
   } = this
+
   const closeBtn = target.closest(`.${CLOSE}`)
+
+  if (closeBtn && closeBtn.classList.contains(OPEN)) return
 
   if (closeOnOverlayClick) {
     const popup = target.classList && target.classList.contains(TARGET) ? target : null

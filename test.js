@@ -219,6 +219,7 @@ function handleBtnClick(e) {
   var closePopup = this.closePopup,
       closeOnOverlayClick = this.options.closeOnOverlayClick;
   var closeBtn = target.closest(".".concat(CLOSE));
+  if (closeBtn && closeBtn.classList.contains(OPEN)) return;
 
   if (closeOnOverlayClick) {
     var popup = target.classList && target.classList.contains(TARGET) ? target : null;
@@ -267,45 +268,56 @@ function openPopup() {
       toggleBtnClass = _this$options.toggleBtnClass,
       shouldPreventScroll = _this$options.preventScroll;
   var shouldChangeUrl;
-  this.name = btn ? btn.dataset.popupTarget || href || btn.getAttribute('href') : href;
 
-  if (window.location.href.indexOf(HASH) > -1) {
-    shouldChangeUrl = false;
-  } else if (this.name.indexOf(HASH) === 0) {
-    shouldChangeUrl = true;
-    this.href = this.name;
-  } else {
-    shouldChangeUrl = false;
-    if (href) removeUrl();
-  }
+  var openHandler = function openHandler() {
+    _this.name = btn ? btn.dataset.popupTarget || btn.getAttribute('href') || href : href;
 
-  this.popup = this.name.indexOf(HASH) === 0 ? document.getElementById(this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(this.name, "\"]"));
-  if (!this.popup) return;
-  if (this.name && shouldChangeUrl) pushUrl();
-  BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
-
-  if (toggleBtnClass.toggle) {
-    BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
-  }
-
-  if (shouldPreventScroll) preventScroll();
-
-  if (onClose) {
-    var isObserving = !!observedPopups.filter(function (p) {
-      return p === _this.popup;
-    })[0];
-
-    if (!isObserving) {
-      observer.observe(this.popup, {
-        attributes: true,
-        attributeFilter: ['class'],
-        attributeOldValue: true
-      });
-      observedPopups.push(this.popup);
+    if (window.location.href.indexOf(HASH) > -1) {
+      shouldChangeUrl = false;
+    } else if (_this.name.indexOf(HASH) === 0) {
+      shouldChangeUrl = true;
+      _this.href = _this.name;
+    } else {
+      shouldChangeUrl = false;
+      if (href) removeUrl();
     }
-  }
 
-  if (onOpen) onOpen();
+    _this.popup = _this.name.indexOf(HASH) === 0 ? document.getElementById(_this.name.slice(1)) : document.querySelector(".".concat(TARGET, "[data-popup=\"").concat(_this.name, "\"]"));
+    if (!_this.popup) return;
+    if (_this.name && shouldChangeUrl) pushUrl();
+    BEMblock(_this.popup, POPUP).addMod(IS_ACTIVE);
+
+    if (toggleBtnClass.toggle) {
+      BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
+    }
+
+    if (shouldPreventScroll) preventScroll();
+
+    if (onClose) {
+      var isObserving = !!observedPopups.filter(function (p) {
+        return p === _this.popup;
+      })[0];
+
+      if (!isObserving) {
+        observer.observe(_this.popup, {
+          attributes: true,
+          attributeFilter: ['class'],
+          attributeOldValue: true
+        });
+        observedPopups.push(_this.popup);
+      }
+    }
+
+    if (onOpen) onOpen();
+  };
+
+  if (btn && btn.classList.contains(CLOSE)) {
+    this.closeTrigger = btn;
+    this.closePopup();
+    setTimeout(openHandler);
+  } else {
+    openHandler();
+  }
 }
 
 function closePopup() {
