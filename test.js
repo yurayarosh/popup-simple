@@ -71,6 +71,10 @@ function _objectSpread2(target) {
   return target;
 }
 
+function _slicedToArray(arr, i) {
+  return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+}
+
 function _toConsumableArray(arr) {
   return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread();
 }
@@ -79,8 +83,39 @@ function _arrayWithoutHoles(arr) {
   if (Array.isArray(arr)) return _arrayLikeToArray(arr);
 }
 
+function _arrayWithHoles(arr) {
+  if (Array.isArray(arr)) return arr;
+}
+
 function _iterableToArray(iter) {
   if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
+}
+
+function _iterableToArrayLimit(arr, i) {
+  if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+  var _arr = [];
+  var _n = true;
+  var _d = false;
+  var _e = undefined;
+
+  try {
+    for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+      _arr.push(_s.value);
+
+      if (i && _arr.length === i) break;
+    }
+  } catch (err) {
+    _d = true;
+    _e = err;
+  } finally {
+    try {
+      if (!_n && _i["return"] != null) _i["return"]();
+    } finally {
+      if (_d) throw _e;
+    }
+  }
+
+  return _arr;
 }
 
 function _unsupportedIterableToArray(o, minLen) {
@@ -102,6 +137,10 @@ function _arrayLikeToArray(arr, len) {
 
 function _nonIterableSpread() {
   throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+}
+
+function _nonIterableRest() {
+  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
 var POPUP = 'popup';
@@ -177,6 +216,7 @@ function resetElements() {
   this.btn = null;
   this.popup = null;
   this.closeTrigger = null;
+  this.href = '';
 }
 
 function pushUrl() {
@@ -196,14 +236,26 @@ function handlePopState() {
       closePopup = this.closePopup,
       openPopup = this.openPopup;
 
-  if (this.hashStart === -1) {
+  if (this.hashStart === -1 && this.popup) {
     this.closeTrigger = this.openPopups[this.openPopups.length - 1];
     closePopup();
   }
 
   if (this.hashStart > 0) {
-    if (!href && !btn) this.href = window.location.href.slice(this.hashStart);
-    openPopup();
+    var urlToArr = window.location.href.split(HASH);
+
+    var _urlToArr = _slicedToArray(urlToArr[urlToArr.length - 1], 1),
+        name = _urlToArr[0];
+
+    if (this.popup && !name) {
+      this.closeTrigger = this.openPopups[this.openPopups.length - 1];
+      this.closePopup();
+    }
+
+    if (name) {
+      if (!href && !btn) this.href = window.location.href.slice(this.hashStart);
+      openPopup();
+    }
   }
 }
 
