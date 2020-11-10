@@ -66,6 +66,13 @@ export default class Popup {
     )
   }
 
+  get shouldAddEscapeHandler() {
+    return (
+      this.options.escapeHandler ||
+      this.popups.filter(({ dataset }) => dataset.escapeHandler === 'true').length > 0
+    )
+  }
+
   _addListeners() {
     this.openHandler = this.handleOpen.bind(this)
     this.closeHandler = this.handleClose.bind(this)
@@ -74,14 +81,14 @@ export default class Popup {
 
     document.addEventListener('click', this.openHandler)
     document.addEventListener('click', this.closeHandler)
-    if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler)
+    if (this.shouldAddEscapeHandler) document.addEventListener('keydown', this.closeHandler)
     if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler)
   }
 
   _removeListeners() {
     document.removeEventListener('click', this.openHandler)
     document.removeEventListener('click', this.closeHandler)
-    if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler)
+    if (this.shouldAddEscapeHandler) document.removeEventListener('keydown', this.closeHandler)
     if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler)
   }
 

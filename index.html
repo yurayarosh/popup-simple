@@ -51,7 +51,11 @@
   <body>
     <button class="btn js-popup-open" data-popup-target="popup-name">open popup</button>
     <button class="btn js-popup-open" data-popup-target="popup-2">open popup 2</button>
-    <a href="#popup-name" class="btn js-popup-open">open popup by href</a>
+    <a
+      href="#popup-name"
+      class="btn js-popup-open"
+      data-toggle-btn-class="btn"
+    >open popup by href</a>
 
     <!-- begin popup -->
     <div class="popup js-popup" data-popup="popup-name">
@@ -86,7 +90,10 @@
     <!-- end popup -->
 
     <!-- begin popup -->
-    <div id="popup-name" class="popup js-popup">
+    <div
+      id="popup-name"
+      class="popup js-popup"
+    >
       <div class="popup__inner">
         <button class="popup__close js-popup-close"></button>
 

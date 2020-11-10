@@ -1,6 +1,12 @@
 import Popup from './main'
 
-const popup = new Popup()
+const popup = new Popup({
+  // targets: {
+  //   'popup-name': {
+  //     escapeHandler: false
+  //   }
+  // }
+})
 
 popup.onOpen = () => {
   console.log('onOpen', popup)

@@ -50,10 +50,12 @@ function closeAll() {
 
   this.openPopups.forEach(popup => {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
-  });
-  if (toggleBtnClass.toggle && this.btns.length > 0) {
+  });  
+  
+  if (this.btns.length > 0) {
     this.btns.forEach(btn => {
-      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+      const toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass;
+      if (toggleBtnClassName) BEMblock(btn, toggleBtnClassName).removeMod(IS_ACTIVE);
     });
   }
 
@@ -108,10 +110,21 @@ function handlePopState() {
 
 function handleEscClick() {
   if (!this.openPopups.length) return
-  const { closePopup } = this;
-  
-  this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-  closePopup();
+  const {
+    closePopup,
+    options: { escapeHandler },
+  } = this;
+
+  const closeTrigger = this.openPopups[this.openPopups.length - 1];
+
+  const shouldHandleEscapeClick = closeTrigger.dataset.escapeHandler
+    ? JSON.parse(closeTrigger.dataset.escapeHandler)
+    : escapeHandler;
+
+  if (shouldHandleEscapeClick) {
+    this.closeTrigger = closeTrigger;
+    closePopup();
+  }
 }
 
 function handleBtnClick(e) {
@@ -119,13 +132,19 @@ function handleBtnClick(e) {
   const {
     closePopup,
     options: { closeOnOverlayClick },
+    popup: targetPopup,
   } = this;
 
   const closeBtn = target.closest(`.${CLOSE}`);
 
   if (closeBtn && closeBtn.classList.contains(OPEN)) return
 
-  if (closeOnOverlayClick) {
+  const shouldCloseOnOverlayClick =
+    targetPopup && targetPopup.dataset.closeOnOverlayClick
+      ? JSON.parse(targetPopup.dataset.closeOnOverlayClick)
+      : closeOnOverlayClick;
+
+  if (shouldCloseOnOverlayClick) {
     const popup = target.classList && target.classList.contains(TARGET) ? target : null;
     this.closeTrigger = closeBtn || popup;
   } else {
@@ -152,13 +171,9 @@ function handleOpen(e) {
 
 function handleClose(e) {
   const { code, type } = e;
-  const {
-    handleEscClick,
-    handleBtnClick,
-    options: { escapeHandler },
-  } = this;
+  const { handleEscClick, handleBtnClick } = this;
 
-  if (escapeHandler && code === 'Escape') handleEscClick(e);
+  if (code === 'Escape') handleEscClick(e);
   if (type === 'click') handleBtnClick(e);
 }
 
@@ -199,8 +214,10 @@ function openPopup() {
     if (this.name && shouldChangeUrl) pushUrl();
 
     BEMblock(this.popup, POPUP).addMod(IS_ACTIVE);
-    if (toggleBtnClass.toggle) {
-      BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
+
+    const toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass;
+    if (toggleBtnClassName) {
+      BEMblock(btn, toggleBtnClassName).addMod(IS_ACTIVE);
     }
     if (shouldPreventScroll) preventScroll();
 
@@ -247,7 +264,9 @@ function closePopup() {
   if (href && href === this.name && hashStart > 0) removeUrl();
 
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
-  if (toggleBtnClass.toggle) BEMblock(this.btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+  const toggleBtnClassName = this.btn.dataset.toggleBtnClass || toggleBtnClass;
+
+  if (toggleBtnClassName) BEMblock(this.btn, toggleBtnClassName).removeMod(IS_ACTIVE);
 
   if (preventScroll && !this.openPopups.length) allowScroll();
 
@@ -333,6 +352,13 @@ class Popup {
     )
   }
 
+  get shouldAddEscapeHandler() {
+    return (
+      this.options.escapeHandler ||
+      this.popups.filter(({ dataset }) => dataset.escapeHandler === 'true').length > 0
+    )
+  }
+
   _addListeners() {
     this.openHandler = this.handleOpen.bind(this);
     this.closeHandler = this.handleClose.bind(this);
@@ -341,14 +367,14 @@ class Popup {
 
     document.addEventListener('click', this.openHandler);
     document.addEventListener('click', this.closeHandler);
-    if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler);
+    if (this.shouldAddEscapeHandler) document.addEventListener('keydown', this.closeHandler);
     if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler);
   }
 
   _removeListeners() {
     document.removeEventListener('click', this.openHandler);
     document.removeEventListener('click', this.closeHandler);
-    if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler);
+    if (this.shouldAddEscapeHandler) document.removeEventListener('keydown', this.closeHandler);
     if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler);
   }
 

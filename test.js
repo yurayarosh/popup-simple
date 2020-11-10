@@ -201,9 +201,10 @@ function closeAll() {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE);
   });
 
-  if (toggleBtnClass.toggle && this.btns.length > 0) {
+  if (this.btns.length > 0) {
     this.btns.forEach(function (btn) {
-      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+      var toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass;
+      if (toggleBtnClassName) BEMblock(btn, toggleBtnClassName).removeMod(IS_ACTIVE);
     });
   }
 
@@ -261,19 +262,27 @@ function handlePopState() {
 
 function handleEscClick() {
   if (!this.openPopups.length) return;
-  var closePopup = this.closePopup;
-  this.closeTrigger = this.openPopups[this.openPopups.length - 1];
-  closePopup();
+  var closePopup = this.closePopup,
+      escapeHandler = this.options.escapeHandler;
+  var closeTrigger = this.openPopups[this.openPopups.length - 1];
+  var shouldHandleEscapeClick = closeTrigger.dataset.escapeHandler ? JSON.parse(closeTrigger.dataset.escapeHandler) : escapeHandler;
+
+  if (shouldHandleEscapeClick) {
+    this.closeTrigger = closeTrigger;
+    closePopup();
+  }
 }
 
 function handleBtnClick(e) {
   var target = e.target;
   var closePopup = this.closePopup,
-      closeOnOverlayClick = this.options.closeOnOverlayClick;
+      closeOnOverlayClick = this.options.closeOnOverlayClick,
+      targetPopup = this.popup;
   var closeBtn = target.closest(".".concat(CLOSE));
   if (closeBtn && closeBtn.classList.contains(OPEN)) return;
+  var shouldCloseOnOverlayClick = targetPopup && targetPopup.dataset.closeOnOverlayClick ? JSON.parse(targetPopup.dataset.closeOnOverlayClick) : closeOnOverlayClick;
 
-  if (closeOnOverlayClick) {
+  if (shouldCloseOnOverlayClick) {
     var popup = target.classList && target.classList.contains(TARGET) ? target : null;
     this.closeTrigger = closeBtn || popup;
   } else {
@@ -299,9 +308,8 @@ function handleClose(e) {
   var code = e.code,
       type = e.type;
   var handleEscClick = this.handleEscClick,
-      handleBtnClick = this.handleBtnClick,
-      escapeHandler = this.options.escapeHandler;
-  if (escapeHandler && code === 'Escape') handleEscClick(e);
+      handleBtnClick = this.handleBtnClick;
+  if (code === 'Escape') handleEscClick(e);
   if (type === 'click') handleBtnClick(e);
 }
 
@@ -338,9 +346,10 @@ function openPopup() {
     if (!_this.popup) return;
     if (_this.name && shouldChangeUrl) pushUrl();
     BEMblock(_this.popup, POPUP).addMod(IS_ACTIVE);
+    var toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass;
 
-    if (toggleBtnClass.toggle) {
-      BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE);
+    if (toggleBtnClassName) {
+      BEMblock(btn, toggleBtnClassName).addMod(IS_ACTIVE);
     }
 
     if (shouldPreventScroll) preventScroll();
@@ -386,7 +395,8 @@ function closePopup() {
   this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]")) || document.querySelector(".".concat(OPEN, "[href=\"").concat(this.name, "\"]"));
   if (href && href === this.name && hashStart > 0) removeUrl();
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
-  if (toggleBtnClass.toggle) BEMblock(this.btn, toggleBtnClass.name).removeMod(IS_ACTIVE);
+  var toggleBtnClassName = this.btn.dataset.toggleBtnClass || toggleBtnClass;
+  if (toggleBtnClassName) BEMblock(this.btn, toggleBtnClassName).removeMod(IS_ACTIVE);
   if (preventScroll && !this.openPopups.length) allowScroll();
   resetElements();
 }
@@ -455,7 +465,7 @@ var Popup = /*#__PURE__*/function () {
       if (this.onClose) this.observer = new MutationObserver(this.handleMutation.bind(this));
       document.addEventListener('click', this.openHandler);
       document.addEventListener('click', this.closeHandler);
-      if (this.options.escapeHandler) document.addEventListener('keydown', this.closeHandler);
+      if (this.shouldAddEscapeHandler) document.addEventListener('keydown', this.closeHandler);
       if (this.shouldAddPopstate) window.addEventListener('popstate', this.popstateHandler);
     }
   }, {
@@ -463,7 +473,7 @@ var Popup = /*#__PURE__*/function () {
     value: function _removeListeners() {
       document.removeEventListener('click', this.openHandler);
       document.removeEventListener('click', this.closeHandler);
-      if (this.options.escapeHandler) document.removeEventListener('keydown', this.closeHandler);
+      if (this.shouldAddEscapeHandler) document.removeEventListener('keydown', this.closeHandler);
       if (this.shouldAddPopstate) window.removeEventListener('popstate', this.popstateHandler);
     }
   }, {
@@ -519,12 +529,25 @@ var Popup = /*#__PURE__*/function () {
         return btn.getAttribute('href') && btn.getAttribute('href').length > 2;
       }).length > 0;
     }
+  }, {
+    key: "shouldAddEscapeHandler",
+    get: function get() {
+      return this.options.escapeHandler || this.popups.filter(function (_ref) {
+        var dataset = _ref.dataset;
+        return dataset.escapeHandler === 'true';
+      }).length > 0;
+    }
   }]);
 
   return Popup;
 }();
 
-var popup = new Popup();
+var popup = new Popup({// targets: {
+  //   'popup-name': {
+  //     escapeHandler: false
+  //   }
+  // }
+});
 
 popup.onOpen = function () {
   console.log('onOpen', popup);

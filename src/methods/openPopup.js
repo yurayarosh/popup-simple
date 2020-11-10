@@ -38,8 +38,10 @@ export default function openPopup() {
     if (this.name && shouldChangeUrl) pushUrl()
 
     BEMblock(this.popup, POPUP).addMod(IS_ACTIVE)
-    if (toggleBtnClass.toggle) {
-      BEMblock(btn, toggleBtnClass.name).addMod(IS_ACTIVE)
+
+    const toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass
+    if (toggleBtnClassName) {
+      BEMblock(btn, toggleBtnClassName).addMod(IS_ACTIVE)
     }
     if (shouldPreventScroll) preventScroll()
 

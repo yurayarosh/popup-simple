@@ -25,6 +25,25 @@ npm i popup-simple
       <!-- popup content -->
   </div>
 </div>
+
+<!-- options added to html elements -->
+<a
+  href="#popup-name"
+  class="btn js-popup-open"
+  data-toggle-btn-class="btn"
+>open popup</a>
+
+<div
+  id="popup-name"
+  class="popup js-popup"
+  data-close-on-overlay-click="false"
+  data-escape-handler="false"
+>
+  <div class="popup__inner">
+    <button class="popup__close js-popup-close"></button>
+      <!-- popup content -->
+  </div>
+</div>
 ```
 
 ```js
@@ -42,7 +61,7 @@ Standart options
   preventScroll: true, // add body overflow hidden
   escapeHandler: true, // handle Esc button click
   closeOnOverlayClick: true, // close on overlay click
-  toggleBtnClass: false, // { toggle: true, name: 'btn' } allow trigger button class name toggling
+  toggleBtnClass: false, // type: String, if provided - button '--active' BEM modificator would be toggling.
 }
 ```
 

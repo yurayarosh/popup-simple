@@ -12,10 +12,12 @@ export default function closeAll() {
 
   this.openPopups.forEach(popup => {
     BEMblock(popup, POPUP).removeMod(IS_ACTIVE)
-  })
-  if (toggleBtnClass.toggle && this.btns.length > 0) {
+  })  
+  
+  if (this.btns.length > 0) {
     this.btns.forEach(btn => {
-      BEMblock(btn, toggleBtnClass.name).removeMod(IS_ACTIVE)
+      const toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass
+      if (toggleBtnClassName) BEMblock(btn, toggleBtnClassName).removeMod(IS_ACTIVE)
     })
   }
 
