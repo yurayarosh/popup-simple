@@ -346,7 +346,7 @@ function openPopup() {
     if (!_this.popup) return;
     if (_this.name && shouldChangeUrl) pushUrl();
     BEMblock(_this.popup, POPUP).addMod(IS_ACTIVE);
-    var toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass;
+    var toggleBtnClassName = btn ? btn.dataset.toggleBtnClass || toggleBtnClass : '';
 
     if (toggleBtnClassName) {
       BEMblock(btn, toggleBtnClassName).addMod(IS_ACTIVE);

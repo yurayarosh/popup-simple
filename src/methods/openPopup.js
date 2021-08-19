@@ -39,7 +39,7 @@ export default function openPopup() {
 
     BEMblock(this.popup, POPUP).addMod(IS_ACTIVE)
 
-    const toggleBtnClassName = btn.dataset.toggleBtnClass || toggleBtnClass
+    const toggleBtnClassName = btn ? btn.dataset.toggleBtnClass || toggleBtnClass : ''
     if (toggleBtnClassName) {
       BEMblock(btn, toggleBtnClassName).addMod(IS_ACTIVE)
     }
