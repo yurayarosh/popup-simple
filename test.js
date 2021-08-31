@@ -395,7 +395,7 @@ function closePopup() {
   this.btn = document.querySelector(".".concat(OPEN, "[data-popup-target=\"").concat(this.name, "\"]")) || document.querySelector(".".concat(OPEN, "[href=\"").concat(this.name, "\"]"));
   if (href && href === this.name && hashStart > 0) removeUrl();
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
-  var toggleBtnClassName = this.btn.dataset.toggleBtnClass || toggleBtnClass;
+  var toggleBtnClassName = this.btn ? this.btn.dataset.toggleBtnClass || toggleBtnClass : '';
   if (toggleBtnClassName) BEMblock(this.btn, toggleBtnClassName).removeMod(IS_ACTIVE);
   if (preventScroll && !this.openPopups.length) allowScroll();
   resetElements();

@@ -264,7 +264,7 @@ function closePopup() {
   if (href && href === this.name && hashStart > 0) removeUrl();
 
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
-  const toggleBtnClassName = this.btn.dataset.toggleBtnClass || toggleBtnClass;
+  const toggleBtnClassName = this.btn ? this.btn.dataset.toggleBtnClass || toggleBtnClass : '';
 
   if (toggleBtnClassName) BEMblock(this.btn, toggleBtnClassName).removeMod(IS_ACTIVE);
 
