@@ -5,7 +5,7 @@ export default function closeAll() {
   if (!this.openPopups.length) return
 
   const {
-    resetElements,
+    // resetElements,
     removeUrl,
     options: { toggleBtnClass, preventScroll },
   } = this
@@ -22,7 +22,7 @@ export default function closeAll() {
   }
 
   if (this.hashStart > 0) removeUrl()
-  resetElements()
+  // resetElements()
 
   if (preventScroll) allowScroll()
 }

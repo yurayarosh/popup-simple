@@ -192,8 +192,7 @@ function allowScroll() {
 
 function closeAll() {
   if (!this.openPopups.length) return;
-  var resetElements = this.resetElements,
-      removeUrl = this.removeUrl,
+  var removeUrl = this.removeUrl,
       _this$options = this.options,
       toggleBtnClass = _this$options.toggleBtnClass,
       preventScroll = _this$options.preventScroll;
@@ -208,8 +207,8 @@ function closeAll() {
     });
   }
 
-  if (this.hashStart > 0) removeUrl();
-  resetElements();
+  if (this.hashStart > 0) removeUrl(); // resetElements()
+
   if (preventScroll) allowScroll();
 }
 
@@ -386,7 +385,6 @@ function closePopup() {
       href = this.href,
       hashStart = this.hashStart,
       removeUrl = this.removeUrl,
-      resetElements = this.resetElements,
       _this$options = this.options,
       toggleBtnClass = _this$options.toggleBtnClass,
       preventScroll = _this$options.preventScroll;
@@ -397,8 +395,7 @@ function closePopup() {
   BEMblock(this.popup, POPUP).removeMod(IS_ACTIVE);
   var toggleBtnClassName = this.btn ? this.btn.dataset.toggleBtnClass || toggleBtnClass : '';
   if (toggleBtnClassName) BEMblock(this.btn, toggleBtnClassName).removeMod(IS_ACTIVE);
-  if (preventScroll && !this.openPopups.length) allowScroll();
-  resetElements();
+  if (preventScroll && !this.openPopups.length) allowScroll(); // resetElements()
 }
 
 function openTarget(_ref) {

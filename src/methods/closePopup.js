@@ -7,7 +7,7 @@ export default function closePopup() {
     href,
     hashStart,
     removeUrl,
-    resetElements,
+    // resetElements,
     options: { toggleBtnClass, preventScroll },
   } = this
 
@@ -26,5 +26,5 @@ export default function closePopup() {
 
   if (preventScroll && !this.openPopups.length) allowScroll()
 
-  resetElements()
+  // resetElements()
 }

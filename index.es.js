@@ -43,7 +43,7 @@ function closeAll() {
   if (!this.openPopups.length) return
 
   const {
-    resetElements,
+    // resetElements,
     removeUrl,
     options: { toggleBtnClass, preventScroll },
   } = this;
@@ -60,7 +60,7 @@ function closeAll() {
   }
 
   if (this.hashStart > 0) removeUrl();
-  resetElements();
+  // resetElements()
 
   if (preventScroll) allowScroll();
 }
@@ -251,7 +251,7 @@ function closePopup() {
     href,
     hashStart,
     removeUrl,
-    resetElements,
+    // resetElements,
     options: { toggleBtnClass, preventScroll },
   } = this;
 
@@ -270,7 +270,7 @@ function closePopup() {
 
   if (preventScroll && !this.openPopups.length) allowScroll();
 
-  resetElements();
+  // resetElements()
 }
 
 function openTarget({ id, dataset: { popup: name } }) {
